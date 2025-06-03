@@ -1,4 +1,3 @@
-
 <template>
   <div class="home">
     <!-- Hero Section -->
@@ -18,7 +17,9 @@
               class="btn btn-primary px-6 py-3 text-base"
             >
               Get Started Now
-              <ArrowRightIcon class="w-4 h-4" />
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
             </button>
             <button class="btn btn-secondary px-5 py-3 text-base">
               Learn More
@@ -170,7 +171,9 @@
             class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
           >
             Connect Wallet Now
-            <ArrowRightIcon class="w-4 h-4" />
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
           </button>
         </div>
       </div>
@@ -189,7 +192,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNearStore } from '../stores/near'
-import { ArrowRightIcon } from '@heroicons/vue/24/solid'
+// import { ArrowRightIcon } from '@heroicons/vue/24/solid' //Commented out, as it is no longer needed.
 import WalletConnectionModal from '../components/WalletConnectionModal.vue'
 
 const router = useRouter()
