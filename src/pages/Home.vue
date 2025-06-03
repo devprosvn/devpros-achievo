@@ -5,6 +5,8 @@
 </template>
 
 <script>
+import { UserIcon } from '@heroicons/vue/24/outline';
+
 export default {
   name: 'Home',
   // Component logic here
