@@ -30,7 +30,7 @@ export const useNearStore = defineStore('near', () => {
         // Initialize contract
         contract.value = new Contract(
           wallet.value.account(),
-          'your-contract-id.testnet', // Replace with actual contract ID
+          'bernieio.testnet',
           {
             viewMethods: ['get_certificate', 'get_all_certificates'],
             changeMethods: ['issue_certificate', 'update_certificate'],
@@ -52,7 +52,7 @@ export const useNearStore = defineStore('near', () => {
         window.open('https://mynearwallet.com/', '_blank')
       } else {
         // Default NEAR wallet
-        await wallet.value.requestSignIn('your-contract-id.testnet', 'Achievo App')
+        await wallet.value.requestSignIn('bernieio.testnet', 'Achievo App')
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error)

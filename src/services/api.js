@@ -40,4 +40,9 @@ export const api = {
   // Payment endpoints
   processPayment: (paymentData) => apiClient.post('/api/payments/process', paymentData),
   getPaymentStatus: (paymentId) => apiClient.get(`/api/payments/status/${paymentId}`),
+
+  // Additional endpoints
+  createCourse: (courseData) => apiClient.post('/api/courses', courseData),
+  updateProfile: (profileData) => apiClient.put('/api/profile', profileData),
+  revokeCertificate: (certificateId) => apiClient.delete(`/api/certificates/${certificateId}`),
 }
