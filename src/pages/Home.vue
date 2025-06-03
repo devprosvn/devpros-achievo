@@ -195,7 +195,7 @@
           <router-link 
             v-if="isConnected"
             to="/student-dashboard" 
-            class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
+            class="btn btn-primary px-6 py-3 text-base"
           >
             Access Dashboard
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -205,7 +205,7 @@
           <button 
             v-else
             @click="setIsWalletModalOpen(true)" 
-            class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
+            class="btn btn-primary px-6 py-3 text-base"
           >
             Connect Wallet Now
             <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
