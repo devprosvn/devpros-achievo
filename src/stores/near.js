@@ -1,12 +1,11 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-// Temporarily disabled NEAR imports due to dependency conflicts
-// import { setupWalletSelector } from '@near-wallet-selector/core'
-// import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
-// import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'
-// import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
-// import { setupModal } from '@near-wallet-selector/modal-ui'
+import { setupWalletSelector } from '@near-wallet-selector/core'
+import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
+import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'
+import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
+import { setupModal } from '@near-wallet-selector/modal-ui'
 
 export const useNearStore = defineStore('near', () => {
   const selector = ref(null)
@@ -31,24 +30,21 @@ export const useNearStore = defineStore('near', () => {
         return
       }
       
-      console.log('NEAR wallet selector packages not installed yet')
-      return
+      await new Promise(resolve => setTimeout(resolve, 500))
       
-      // await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // selector.value = await setupWalletSelector({
-      //   network: nearConfig.networkId,
-      //   debug: true,
-      //   modules: [
-      //     setupMeteorWallet(),
-      //     setupMeteorWalletApp(),
-      //     setupMyNearWallet()
-      //   ],
-      // })
+      selector.value = await setupWalletSelector({
+        network: nearConfig.networkId,
+        debug: true,
+        modules: [
+          setupMeteorWallet(),
+          setupMeteorWalletApp(),
+          setupMyNearWallet()
+        ],
+      })
 
-      // modal.value = setupModal(selector.value, {
-      //   contractId: 'bernieio.testnet'
-      // })
+      modal.value = setupModal(selector.value, {
+        contractId: 'bernieio.testnet'
+      })
 
       const state = selector.value.store.getState()
       accounts.value = state.accounts
@@ -83,6 +79,11 @@ export const useNearStore = defineStore('near', () => {
       
       if (!selector.value) {
         await initNear()
+      }
+
+      // Check again after initialization
+      if (!selector.value) {
+        throw new Error('NEAR wallet selector not initialized')
       }
 
       let walletId
