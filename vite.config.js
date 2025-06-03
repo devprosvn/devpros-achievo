@@ -8,6 +8,7 @@ export default defineConfig({
     global: 'globalThis',
     'process.env': {},
     __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
+    Buffer: ['buffer', 'Buffer'],
   },
   resolve: {
     alias: {

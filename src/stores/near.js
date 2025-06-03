@@ -7,6 +7,7 @@ import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { setupModal } from '@near-wallet-selector/modal-ui'
 import { providers } from 'near-api-js'
+import { Buffer } from 'buffer'
 
 export const useNearStore = defineStore('near', () => {
   const selector = ref(null)
@@ -16,6 +17,9 @@ export const useNearStore = defineStore('near', () => {
   const accountId = ref(null)
   const isConnected = ref(false)
   const isLoading = ref(false)
+  const isInitializing = ref(false)
+
+  let initializationPromise = null
 
   const nearConfig = {
     networkId: "testnet",
@@ -24,105 +28,122 @@ export const useNearStore = defineStore('near', () => {
     explorerUrl: "https://explorer.testnet.near.org",
   }
 
-  const initNear = async () => {
+  // Hàm nội bộ thực hiện khởi tạo
+  const _doInitNear = async () => {
+    if (typeof window === 'undefined') {
+      console.log('NEAR initialization skipped (not in browser environment).')
+      throw new Error('NEAR initialization skipped (not in browser environment).')
+    }
+
+    console.log('Initializing NEAR wallet selector...')
+    isInitializing.value = true
+
     try {
-      if (typeof window === 'undefined') {
-        console.log('NEAR initialization skipped (not in browser)')
-        return
-      }
-      
-      if (selector.value) {
-        console.log('NEAR selector already initialized')
-        return
-      }
-      
-      console.log('Initializing NEAR wallet selector...')
-      
-      selector.value = await setupWalletSelector({
+      const newSelector = await setupWalletSelector({
         network: nearConfig.networkId,
         debug: true,
         modules: [
           setupMeteorWallet(),
           setupMeteorWalletApp(),
-          setupMyNearWallet()
+          setupMyNearWallet(),
         ],
       })
-      
-      console.log('NEAR wallet selector initialized successfully')
+      console.log('NEAR wallet selector initialized successfully.')
 
-      modal.value = setupModal(selector.value, {
-        contractId: 'bernieio.testnet'
+      selector.value = newSelector
+
+      modal.value = setupModal(newSelector, {
+        contractId: 'bernieio.testnet',
       })
 
-      const state = selector.value.store.getState()
+      const state = newSelector.store.getState()
       accounts.value = state.accounts
       
       if (state.accounts.length > 0) {
         accountId.value = state.accounts[0].accountId
         isConnected.value = true
-        wallet.value = await selector.value.wallet()
+        wallet.value = await newSelector.wallet()
       }
 
-      // Subscribe to state changes
-      selector.value.store.observable.subscribe((state) => {
-        accounts.value = state.accounts
-        if (state.accounts.length > 0) {
-          accountId.value = state.accounts[0].accountId
+      // Theo dõi thay đổi trạng thái của selector
+      newSelector.store.observable.subscribe((currentState) => {
+        console.log('Wallet selector state changed:', currentState)
+        accounts.value = currentState.accounts
+        if (currentState.accounts.length > 0) {
+          accountId.value = currentState.accounts[0].accountId
           isConnected.value = true
+          newSelector.wallet().then(w => { wallet.value = w }).catch(console.error)
         } else {
           accountId.value = null
           isConnected.value = false
           wallet.value = null
         }
       })
-
+      
+      return newSelector
     } catch (error) {
-      console.warn('NEAR initialization failed:', error)
+      console.error('NEAR initialization failed:', error)
+      selector.value = null
+      initializationPromise = null
+      throw error
+    } finally {
+      isInitializing.value = false
     }
   }
 
-  const connectWallet = async (walletType = 'meteor') => {
+  // Hàm initNear được export ra ngoài
+  const initNear = () => {
+    if (selector.value) {
+      return Promise.resolve(selector.value)
+    }
+    if (!initializationPromise) {
+      initializationPromise = _doInitNear()
+    }
+    return initializationPromise
+  }
+
+  const connectWallet = async (walletType) => {
+    isLoading.value = true
     try {
-      isLoading.value = true
+      const currentSelector = await initNear()
       
-      // Always ensure initialization
-      await initNear()
-      
-      // Wait a bit more for proper initialization
-      if (!selector.value) {
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        await initNear()
+      if (!currentSelector) {
+        throw new Error('NEAR wallet selector not initialized after initNear call.')
       }
 
-      // Check again after initialization
-      if (!selector.value) {
-        throw new Error('NEAR wallet selector not initialized')
-      }
-
-      let walletId
+      let walletIdToConnect
       switch (walletType) {
         case 'meteor':
-          walletId = 'meteor-wallet'
+          walletIdToConnect = 'meteor-wallet'
           break
         case 'meteor-app':
-          walletId = 'meteor-wallet-app'
+          walletIdToConnect = 'meteor-wallet-app'
           break
         case 'mynear':
-          walletId = 'my-near-wallet'
+          walletIdToConnect = 'my-near-wallet'
           break
         default:
-          walletId = 'meteor-wallet'
+          if (modal.value) {
+            console.log('Showing wallet selector modal.')
+            modal.value.show()
+            isLoading.value = false
+            return
+          } else {
+            throw new Error(`Wallet type '${walletType}' is not recognized and modal is not available.`)
+          }
+      }
+      
+      console.log(`Attempting to connect to wallet ID: ${walletIdToConnect}`)
+      const selectedWalletInstance = await currentSelector.wallet(walletIdToConnect)
+
+      if (!selectedWalletInstance) {
+        throw new Error(`Could not get wallet instance for ${walletIdToConnect}. It might not be available, configured, or selected by the user.`)
       }
 
-      const selectedWallet = await selector.value.wallet(walletId)
-      
-      await selectedWallet.signIn({
+      await selectedWalletInstance.signIn({
         contractId: 'bernieio.testnet',
-        methodNames: ['issue_certificate', 'update_certificate', 'revoke_certificate']
       })
 
-      wallet.value = selectedWallet
-      
     } catch (error) {
       console.error('Failed to connect wallet:', error)
       throw error
@@ -136,16 +157,15 @@ export const useNearStore = defineStore('near', () => {
       if (wallet.value) {
         await wallet.value.signOut()
       }
-      accountId.value = null
-      isConnected.value = false
-      wallet.value = null
     } catch (error) {
       console.error('Failed to disconnect wallet:', error)
     }
   }
 
   const callMethod = async (methodName, args = {}, gas = '300000000000000', deposit = '0') => {
-    if (!wallet.value) throw new Error('Wallet not connected')
+    if (!wallet.value || !isConnected.value || !accountId.value) {
+      throw new Error('Wallet not connected or accountId not available for callMethod')
+    }
     
     try {
       isLoading.value = true
@@ -159,10 +179,10 @@ export const useNearStore = defineStore('near', () => {
               methodName,
               args,
               gas,
-              deposit
-            }
-          }
-        ]
+              deposit,
+            },
+          },
+        ],
       })
       return result
     } catch (error) {
@@ -174,10 +194,34 @@ export const useNearStore = defineStore('near', () => {
   }
 
   const viewMethod = async (methodName, args = {}) => {
-    if (!selector.value) return null
+    const currentSelector = selector.value
+    if (!currentSelector) {
+      console.warn("Selector not initialized for viewMethod. Attempting to initialize...")
+      try {
+        await initNear()
+        const recheckedSelector = selector.value
+        if (!recheckedSelector) {
+          console.error("Selector still not initialized after attempt.")
+          return null
+        }
+        const { network: recheckedNetwork } = recheckedSelector.options
+        const recheckedProvider = new providers.JsonRpcProvider({ url: recheckedNetwork.nodeUrl })
+        const recheckedResult = await recheckedProvider.query({
+          request_type: 'call_function',
+          account_id: 'bernieio.testnet',
+          method_name: methodName,
+          args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
+          finality: 'optimistic',
+        })
+        return JSON.parse(Buffer.from(recheckedResult.result).toString())
+      } catch(initError) {
+        console.error("Failed to initialize selector for viewMethod:", initError)
+        return null
+      }
+    }
     
     try {
-      const { network } = selector.value.options
+      const { network } = currentSelector.options
       const provider = new providers.JsonRpcProvider({ url: network.nodeUrl })
       
       const result = await provider.query({
@@ -185,7 +229,7 @@ export const useNearStore = defineStore('near', () => {
         account_id: 'bernieio.testnet',
         method_name: methodName,
         args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
-        finality: 'final'
+        finality: 'optimistic',
       })
       
       return JSON.parse(Buffer.from(result.result).toString())
@@ -217,23 +261,23 @@ export const useNearStore = defineStore('near', () => {
       issuer_id: certificateData.issuerId,
       course_id: certificateData.courseId,
       issue_date: certificateData.issueDate,
-      metadata: certificateData.metadata || {}
+      metadata: certificateData.metadata || {},
     })
   }
 
   const updateCertificate = async (certificateId, updateData) => {
     return await callMethod('update_certificate', {
       certificate_id: certificateId,
-      ...updateData
+      ...updateData,
     })
   }
 
   const revokeCertificate = async (certificateId) => {
     return await callMethod('revoke_certificate', {
-      certificate_id: certificateId
+      certificate_id: certificateId,
     })
   }
-
+  
   const validateCertificate = async (certificateId) => {
     try {
       const certificate = await getCertificate(certificateId)
@@ -251,13 +295,18 @@ export const useNearStore = defineStore('near', () => {
           issuerName: certificate.issuer_name,
           issueDate: certificate.issue_date,
           status: certificate.status || 'valid',
-          blockchainHash: certificate.hash || certificateId
-        }
+          blockchainHash: certificate.hash || certificateId,
+        },
       }
     } catch (error) {
       console.error('Failed to validate certificate:', error)
       return { isValid: false, message: 'Validation failed' }
     }
+  }
+
+  // Tự động khởi tạo NEAR khi store được sử dụng lần đầu ở client-side
+  if (typeof window !== 'undefined') {
+    initNear().catch(err => console.error("Auto-init Near failed during store setup:", err))
   }
 
   return {
@@ -268,15 +317,18 @@ export const useNearStore = defineStore('near', () => {
     accountId,
     isConnected,
     isLoading,
+    isInitializing,
     initNear,
     connectWallet,
     disconnectWallet,
+    callMethod,
+    viewMethod,
     getCertificate,
     getAllCertificates,
     getUserCertificates,
     issueCertificate,
     updateCertificate,
     revokeCertificate,
-    validateCertificate
+    validateCertificate,
   }
 })

@@ -204,15 +204,21 @@ const setIsWalletModalOpen = (value) => {
   isWalletModalOpen.value = value
 }
 
+const connectionError = ref(null)
+const connectingWallet = ref(false)
+
 const handleWalletConnect = async (walletType) => {
+  connectionError.value = null
+  connectingWallet.value = true
   try {
+    console.log(`Component: Attempting to connect to ${walletType || 'default modal'}`)
     await nearStore.connectWallet(walletType)
-    if (nearStore.isConnected) {
-      setIsWalletModalOpen(false)
-      router.push('/student-dashboard')
-    }
+    console.log('Component: Wallet connection process initiated/completed.')
   } catch (error) {
-    console.error('Wallet connection failed:', error)
+    console.error('Component: Wallet connection failed:', error)
+    connectionError.value = error.message || 'Không thể kết nối ví. Vui lòng thử lại.'
+  } finally {
+    connectingWallet.value = false
   }
 }
 
