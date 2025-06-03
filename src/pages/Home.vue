@@ -12,18 +12,44 @@
             Transform your learning journey with blockchain-verified credentials.
           </p>
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <button 
-              @click="setIsWalletModalOpen(true)"
-              class="btn btn-primary px-6 py-3 text-base"
-            >
-              Get Started Now
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
-              </svg>
-            </button>
-            <button class="btn btn-secondary px-5 py-3 text-base">
-              Learn More
-            </button>
+            <!-- Show different buttons based on connection status -->
+            <div v-if="!isConnected" class="flex flex-col sm:flex-row gap-4 justify-center">
+              <button 
+                @click="setIsWalletModalOpen(true)"
+                :disabled="connectingWallet"
+                class="btn btn-primary px-6 py-3 text-base"
+              >
+                <span v-if="connectingWallet">Connecting...</span>
+                <span v-else>Get Started Now</span>
+                <svg v-if="!connectingWallet" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </button>
+              <button class="btn btn-secondary px-5 py-3 text-base">
+                Learn More
+              </button>
+            </div>
+            
+            <!-- Show when wallet is connected -->
+            <div v-else class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+              <div class="text-center">
+                <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg mb-3">
+                  <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                  </svg>
+                  Wallet Connected: {{ accountId }}
+                </div>
+              </div>
+              <router-link to="/student-dashboard" class="btn btn-primary px-6 py-3 text-base">
+                Go to Dashboard
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+              </router-link>
+              <button @click="handleDisconnect" class="btn btn-outline px-5 py-3 text-base">
+                Disconnect
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -166,7 +192,18 @@
           <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90 text-white">
             Join thousands of learners and organizations already using Achievo for secure digital credentials.
           </p>
+          <router-link 
+            v-if="isConnected"
+            to="/student-dashboard" 
+            class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
+          >
+            Access Dashboard
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+              </svg>
+          </router-link>
           <button 
+            v-else
             @click="setIsWalletModalOpen(true)" 
             class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
           >
@@ -189,7 +226,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useNearStore } from '../stores/near'
 // import { ArrowRightIcon } from '@heroicons/vue/24/solid' //Commented out, as it is no longer needed.
@@ -207,6 +244,10 @@ const setIsWalletModalOpen = (value) => {
 const connectionError = ref(null)
 const connectingWallet = ref(false)
 
+// Reactive properties from NEAR store
+const isConnected = computed(() => nearStore.isConnected)
+const accountId = computed(() => nearStore.accountId)
+
 const handleWalletConnect = async (walletType) => {
   connectionError.value = null
   connectingWallet.value = true
@@ -214,6 +255,9 @@ const handleWalletConnect = async (walletType) => {
     console.log(`Component: Attempting to connect to ${walletType || 'default modal'}`)
     await nearStore.connectWallet(walletType)
     console.log('Component: Wallet connection process initiated/completed.')
+    
+    // Close modal after successful connection
+    setIsWalletModalOpen(false)
   } catch (error) {
     console.error('Component: Wallet connection failed:', error)
     connectionError.value = error.message || 'Không thể kết nối ví. Vui lòng thử lại.'
@@ -221,6 +265,22 @@ const handleWalletConnect = async (walletType) => {
     connectingWallet.value = false
   }
 }
+
+const handleDisconnect = async () => {
+  try {
+    await nearStore.disconnectWallet()
+  } catch (error) {
+    console.error('Disconnect failed:', error)
+  }
+}
+
+// Watch for connection status changes
+watch(isConnected, (newValue) => {
+  if (newValue) {
+    console.log('Wallet connected successfully!')
+    setIsWalletModalOpen(false)
+  }
+})
 
 onMounted(async () => {
   try {
