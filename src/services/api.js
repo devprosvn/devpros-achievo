@@ -67,7 +67,7 @@ const mockData = {
       level: 'Beginner',
       priceNEAR: '6',
       priceUSD: '18',
-      image: null
+      image: '/digital-marketing-banner.png'
     }
   ],
   certificates: [
