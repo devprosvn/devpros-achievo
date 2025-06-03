@@ -48,7 +48,7 @@ body {
   font-family: 'Aptos', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
   color: #1a202c;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
   min-height: 100vh;
   overflow-x: hidden;
 }
@@ -111,37 +111,45 @@ body {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   color: white;
-  box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.39);
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
+  font-weight: 600;
+  padding: 0.875rem 1.75rem;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px 0 rgba(79, 70, 229, 0.5);
+  box-shadow: 0 8px 25px 0 rgba(59, 130, 246, 0.6);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
-  color: #1a202c;
-  border: 2px solid rgba(79, 70, 229, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1e40af;
+  border: 2px solid rgba(59, 130, 246, 0.2);
   backdrop-filter: blur(10px);
+  font-weight: 600;
+  padding: 0.875rem 1.75rem;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(79, 70, 229, 0.4);
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(59, 130, 246, 0.4);
   transform: translateY(-2px);
+  color: #1d4ed8;
 }
 
 .btn-ghost {
   background: transparent;
-  color: #4f46e5;
-  border: 2px solid #4f46e5;
+  color: #3b82f6;
+  border: 2px solid #3b82f6;
+  font-weight: 600;
+  padding: 0.875rem 1.75rem;
 }
 
 .btn-ghost:hover {
-  background: #4f46e5;
+  background: #3b82f6;
   color: white;
   transform: translateY(-2px);
 }
@@ -178,19 +186,21 @@ body {
 .form-input {
   width: 100%;
   padding: 0.875rem 1rem;
-  border: 2px solid rgba(79, 70, 229, 0.1);
+  border: 2px solid rgba(59, 130, 246, 0.2);
   border-radius: 0.75rem;
   font-size: 1rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #1e293b;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #4f46e5;
-  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   background: white;
+  color: #1e293b;
 }
 
 .form-input::placeholder {
@@ -219,14 +229,14 @@ body {
   font-size: 1.5rem;
   font-weight: bold;
   font-style: italic;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-decoration: none;
 }
 
 .nav-link {
-  color: #374151;
+  color: #475569;
   text-decoration: none;
   font-weight: 500;
   padding: 0.5rem 1rem;
@@ -235,13 +245,13 @@ body {
 }
 
 .nav-link:hover {
-  color: #4f46e5;
-  background: rgba(79, 70, 229, 0.1);
+  color: #3b82f6;
+  background: rgba(59, 130, 246, 0.1);
 }
 
 /* Hero Section */
 .hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   color: white;
   padding: 5rem 0;
   text-align: center;
@@ -327,7 +337,7 @@ body {
   width: 4rem;
   height: 4rem;
   margin: 0 auto 1.5rem;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   border-radius: 1rem;
   display: flex;
   align-items: center;
@@ -337,7 +347,7 @@ body {
 
 /* Utilities */
 .text-gradient {
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }

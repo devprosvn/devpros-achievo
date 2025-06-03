@@ -20,7 +20,7 @@
             <div class="flex items-center gap-3">
               <button 
                 v-if="connectedWallet" 
-                class="btn btn-secondary text-sm"
+                class="btn btn-secondary text-sm px-4 py-2"
               >
                 <div class="w-2 h-2 bg-green-400 rounded-full"></div>
                 {{ connectedWallet === "meteor" ? "Meteor" : "MyNear" }} Connected
@@ -28,7 +28,7 @@
               <button 
                 v-else
                 @click="setIsWalletModalOpen(true)" 
-                class="btn btn-primary"
+                class="btn btn-primary px-6 py-3"
               >
                 Connect Wallet
               </button>
@@ -90,8 +90,10 @@
           
           <div class="feature-card slide-up" style="animation-delay: 0.2s">
             <div class="feature-icon">
-              <TrophyIcon class="w-8 h-8" />
-            </div>
+              <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+              </svg>
+            </div></div>
             <h3 class="text-xl font-bold mb-3 text-gray-900">Dynamic NFT Certificates</h3>
             <p class="text-gray-600">
               Certificates evolve as you complete more courses, showcasing your growing expertise.
@@ -112,7 +114,7 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white relative overflow-hidden">
+    <section class="py-20 bg-gradient-to-r from-blue-600 to-blue-800 text-white relative overflow-hidden">
       <div class="absolute inset-0 bg-black opacity-10"></div>
       <div class="container relative z-10">
         <div class="text-center">
@@ -122,7 +124,7 @@
           </p>
           <button 
             @click="setIsWalletModalOpen(true)" 
-            class="btn btn-primary btn-lg bg-white text-blue-600 hover:bg-gray-100"
+            class="btn btn-lg bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-8 py-4 shadow-lg"
           >
             Connect Wallet Now
             <ArrowRightIcon class="w-5 h-5" />
@@ -161,7 +163,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ShieldCheckIcon, TrophyIcon, CheckCircleIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
+import { ShieldCheckIcon, CheckCircleIcon, ArrowRightIcon } from '@heroicons/vue/24/outline'
 import WalletConnectionModal from '../components/WalletConnectionModal.vue'
 
 const isWalletModalOpen = ref(false)
