@@ -6,7 +6,7 @@
         <div class="flex h-16 items-center justify-between">
           <!-- Logo -->
           <router-link to="/" class="flex items-center gap-2">
-            <AwardIcon class="h-8 w-8 text-blue-600" />
+            <UserIcon class="h-8 w-8 text-blue-600" />
             <span class="text-xl font-bold">Achievo</span>
           </router-link>
 
@@ -181,7 +181,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { AwardIcon } from '@heroicons/vue/24/outline'
+import { UserIcon } from '@heroicons/vue/24/outline'
 
 const router = useRouter()
 const authStore = useAuthStore()
