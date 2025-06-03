@@ -1,0 +1,456 @@
+Lỗi "NEAR wallet selector not initialized" xảy ra do selector.value trong store src/stores/near.js vẫn là null tại thời điểm nó được truy cập trong hàm connectWallet. Điều này thường xảy ra khi quá trình khởi tạo không đồng bộ của setupWalletSelector chưa hoàn thành hoặc đã thất bại một cách "thầm lặng" trước khi selector.value được gán giá trị.
+
+Dưới đây là phân tích và đề xuất cách sửa lỗi trong file src/stores/near.js của bạn:
+
+Vấn đề chính:
+
+Xử lý khởi tạo không đồng bộ: Hàm initNear của bạn cố gắng khởi tạo selector, nhưng cách connectWallet gọi và kiểm tra selector.value có thể dẫn đến race condition hoặc không xử lý đúng trường hợp initNear thất bại.
+Gọi initNear nhiều lần: Việc gọi initNear với setTimeout trong connectWallet là một dấu hiệu cho thấy có vấn đề với luồng khởi tạo ban đầu.
+Giải pháp đề xuất:
+
+Chúng ta sẽ cải thiện hàm initNear để nó quản lý trạng thái khởi tạo một cách chặt chẽ hơn bằng cách sử dụng một promise cho quá trình khởi tạo. Hàm connectWallet sẽ await promise này để đảm bảo selector đã được khởi tạo hoàn toàn.
+
+✏️ Chỉnh sửa file src/stores/near.js
+JavaScript
+
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import { setupWalletSelector } from '@near-wallet-selector/core';
+import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet';
+import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'; // Giữ lại nếu bạn cần hỗ trợ kết nối ứng dụng di động Meteor Wallet
+import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet';
+import { setupModal } from '@near-wallet-selector/modal-ui';
+import { providers } from 'near-api-js';
+import { Buffer } from 'buffer'; // Import Buffer
+
+export const useNearStore = defineStore('near', () => {
+  const selector = ref(null);
+  const wallet = ref(null);
+  const modal = ref(null);
+  const accounts = ref([]);
+  const accountId = ref(null);
+  const isConnected = ref(false);
+  const isLoading = ref(false); // Dùng cho các hoạt động của ví (connect, callMethod)
+  const isInitializing = ref(false); // Dùng cho quá trình initNear
+
+  let initializationPromise = null; // Promise cho quá trình khởi tạo
+
+  const nearConfig = {
+    networkId: "testnet",
+    nodeUrl: "https://rpc.testnet.near.org",
+    helperUrl: "https://helper.testnet.near.org",
+    explorerUrl: "https://explorer.testnet.near.org",
+  };
+
+  // Hàm nội bộ thực hiện khởi tạo
+  const _doInitNear = async () => {
+    if (typeof window === 'undefined') {
+      console.log('NEAR initialization skipped (not in browser environment).');
+      throw new Error('NEAR initialization skipped (not in browser environment).');
+    }
+
+    console.log('Initializing NEAR wallet selector...');
+    isInitializing.value = true;
+
+    try {
+      const newSelector = await setupWalletSelector({
+        network: nearConfig.networkId,
+        debug: true, // Nên đặt là false cho production
+        modules: [
+          setupMeteorWallet({ /* Các tùy chọn cho Meteor Wallet (Web/Extension) */ }),
+          setupMeteorWalletApp({ /* Các tùy chọn cho Meteor Wallet App (Mobile) */ }),
+          setupMyNearWallet({ /* Các tùy chọn cho MyNearWallet */ }),
+        ],
+      });
+      console.log('NEAR wallet selector initialized successfully.');
+
+      selector.value = newSelector; // Gán vào ref
+
+      modal.value = setupModal(newSelector, {
+        contractId: 'bernieio.testnet', // THAY THẾ bằng contract ID của bạn trên testnet
+        // theme: 'dark' // Tùy chọn theme cho modal
+      });
+
+      const state = newSelector.store.getState();
+      accounts.value = state.accounts;
+      
+      if (state.accounts.length > 0) {
+        accountId.value = state.accounts[0].accountId;
+        isConnected.value = true;
+        wallet.value = await newSelector.wallet();
+      }
+
+      // Theo dõi thay đổi trạng thái của selector
+      newSelector.store.observable.subscribe((currentState) => {
+        console.log('Wallet selector state changed:', currentState);
+        accounts.value = currentState.accounts;
+        if (currentState.accounts.length > 0) {
+          accountId.value = currentState.accounts[0].accountId;
+          isConnected.value = true;
+          // Cập nhật instance của ví nếu cần
+          newSelector.wallet().then(w => { wallet.value = w; }).catch(console.error);
+        } else {
+          accountId.value = null;
+          isConnected.value = false;
+          wallet.value = null;
+        }
+      });
+      
+      return newSelector; // Trả về selector đã khởi tạo
+    } catch (error) {
+      console.error('NEAR initialization failed:', error);
+      selector.value = null; // Đảm bảo selector được reset khi thất bại
+      initializationPromise = null; // Reset promise để có thể thử lại
+      throw error; // Ném lỗi ra ngoài
+    } finally {
+      isInitializing.value = false;
+    }
+  };
+
+  // Hàm initNear được export ra ngoài
+  const initNear = () => {
+    if (selector.value) { // Đã khởi tạo và gán giá trị
+      return Promise.resolve(selector.value);
+    }
+    if (!initializationPromise) { // Chưa có quá trình khởi tạo nào đang diễn ra
+      initializationPromise = _doInitNear();
+    }
+    return initializationPromise;
+  };
+
+  const connectWallet = async (walletType) => { // walletType: 'meteor', 'meteor-app', hoặc 'mynear'
+    isLoading.value = true;
+    try {
+      const currentSelector = await initNear(); // Đảm bảo quá trình khởi tạo đã hoàn tất
+      
+      if (!currentSelector) {
+          // Điều này không nên xảy ra nếu initNear ném lỗi đúng cách, nhưng để an toàn
+        throw new Error('NEAR wallet selector not initialized after initNear call.');
+      }
+
+      let walletIdToConnect;
+      switch (walletType) {
+        case 'meteor':
+          walletIdToConnect = 'meteor-wallet';
+          break;
+        case 'meteor-app':
+          walletIdToConnect = 'meteor-wallet-app';
+          break;
+        case 'mynear':
+          walletIdToConnect = 'my-near-wallet';
+          break;
+        default:
+          // Nếu không có walletType cụ thể, hiển thị modal cho người dùng chọn
+          if (modal.value) {
+            console.log('Showing wallet selector modal.');
+            modal.value.show();
+            // Việc đăng nhập sẽ được xử lý thông qua tương tác với modal và subscription.
+            // Bạn có thể cần đợi sự kiện hoặc kiểm tra trạng thái sau khi modal hiển thị.
+            // Trong trường hợp này, chúng ta sẽ không gọi signIn trực tiếp ở đây.
+            // State isConnected và accountId sẽ được cập nhật bởi observable.
+            isLoading.value = false; // Kết thúc loading sớm vì modal tự quản lý
+            return; // Thoát sớm vì modal sẽ xử lý đăng nhập
+          } else {
+            throw new Error(`Wallet type '${walletType}' is not recognized and modal is not available.`);
+          }
+      }
+      
+      console.log(`Attempting to connect to wallet ID: ${walletIdToConnect}`);
+      const selectedWalletInstance = await currentSelector.wallet(walletIdToConnect);
+
+      if (!selectedWalletInstance) {
+        throw new Error(`Could not get wallet instance for ${walletIdToConnect}. It might not be available, configured, or selected by the user.`);
+      }
+      
+      // Kiểm tra xem đã đăng nhập với ví này chưa (selector state có thể đã phản ánh điều này)
+      // if (selectedWalletInstance.isSignedIn()) {
+      //   wallet.value = selectedWalletInstance;
+      //   accountId.value = selectedWalletInstance.getAccountId(); // Giả sử getAccountId() tồn tại trên instance
+      //   isConnected.value = true;
+      //   isLoading.value = false;
+      //   return;
+      // }
+
+      await selectedWalletInstance.signIn({
+        contractId: 'bernieio.testnet', // THAY THẾ bằng contract ID của bạn
+        // methodNames: ['issue_certificate', 'update_certificate', 'revoke_certificate'] // Tùy chọn
+      });
+
+      // Các cập nhật state (accountId, isConnected, wallet.value) sẽ được xử lý bởi observable 
+      // sau khi signIn thành công.
+
+    } catch (error) {
+      console.error('Failed to connect wallet:', error);
+      throw error; // Ném lỗi để component có thể bắt và xử lý
+    } finally {
+      isLoading.value = false;
+    }
+  };
+
+  const disconnectWallet = async () => {
+    // ... (giữ nguyên logic disconnectWallet của bạn)
+    try {
+      if (wallet.value) { // Sử dụng wallet.value
+        await wallet.value.signOut(); // Sử dụng wallet.value
+      }
+      // Các dòng sau sẽ được xử lý bởi observable khi state thay đổi
+      // accountId.value = null;
+      // isConnected.value = false;
+      // wallet.value = null; 
+    } catch (error) {
+      console.error('Failed to disconnect wallet:', error);
+    }
+  };
+
+  const callMethod = async (methodName, args = {}, gas = '300000000000000', deposit = '0') => {
+    // ... (giữ nguyên logic callMethod của bạn, đảm bảo wallet.value được kiểm tra)
+    if (!wallet.value || !isConnected.value || !accountId.value) {
+        throw new Error('Wallet not connected or accountId not available for callMethod');
+    }
+    // ...
+    // Thay signerId: accountId.value bằng accountId.value trực tiếp nếu accountId là string
+    // Trong signAndSendTransaction, signerId thường là accountId.value
+    // receiverId là contractId
+    // ... (logic của bạn)
+    try {
+        isLoading.value = true;
+        const result = await wallet.value.signAndSendTransaction({
+            signerId: accountId.value, // accountId.value đã là string
+            receiverId: 'bernieio.testnet', // THAY THẾ bằng contract ID của bạn
+            actions: [
+            {
+                type: 'FunctionCall',
+                params: {
+                methodName,
+                args,
+                gas,
+                deposit,
+                },
+            },
+            ],
+        });
+        return result;
+        } catch (error) {
+        console.error(`Failed to call ${methodName}:`, error);
+        throw error;
+        } finally {
+        isLoading.value = false;
+        }
+  };
+
+  const viewMethod = async (methodName, args = {}) => {
+    // Sử dụng selector.value để truy cập instance của selector
+    const currentSelector = selector.value; 
+    if (!currentSelector) {
+      console.warn("Selector not initialized for viewMethod. Attempting to initialize...");
+      try {
+        await initNear(); // Thử khởi tạo nếu chưa có
+        const recheckedSelector = selector.value;
+        if (!recheckedSelector) {
+            console.error("Selector still not initialized after attempt.");
+            return null;
+        }
+        const { network: recheckedNetwork } = recheckedSelector.options;
+        const recheckedProvider = new providers.JsonRpcProvider({ url: recheckedNetwork.nodeUrl });
+        const recheckedResult = await recheckedProvider.query({ /* ... */ }); // Lặp lại query
+        return JSON.parse(Buffer.from(recheckedResult.result).toString());
+
+      } catch(initError) {
+        console.error("Failed to initialize selector for viewMethod:", initError);
+        return null;
+      }
+    }
+    
+    try {
+      const { network } = currentSelector.options;
+      const provider = new providers.JsonRpcProvider({ url: network.nodeUrl });
+      
+      const result = await provider.query({
+        request_type: 'call_function',
+        account_id: 'bernieio.testnet', // THAY THẾ bằng contract ID của bạn
+        method_name: methodName,
+        args_base64: Buffer.from(JSON.stringify(args)).toString('base64'),
+        finality: 'optimistic', // hoặc 'final'
+      });
+      
+      // result.result là Uint8Array
+      return JSON.parse(Buffer.from(result.result).toString());
+    } catch (error) {
+      console.error(`Failed to call view method ${methodName}:`, error);
+      return null;
+    }
+  };
+  
+  // Các hàm còn lại (getCertificate, issueCertificate, v.v.) giữ nguyên logic gọi callMethod/viewMethod
+
+  const getCertificate = async (certificateId) => {
+    return await viewMethod('get_certificate', { certificate_id: certificateId });
+  };
+
+  const getAllCertificates = async () => {
+    return await viewMethod('get_all_certificates') || [];
+  };
+
+  const getUserCertificates = async (userId) => {
+    return await viewMethod('get_user_certificates', { user_id: userId }) || [];
+  };
+
+  const issueCertificate = async (certificateData) => {
+    return await callMethod('issue_certificate', {
+      certificate_id: certificateData.id,
+      title: certificateData.title,
+      recipient_name: certificateData.recipientName,
+      recipient_email: certificateData.recipientEmail,
+      issuer_name: certificateData.issuerName,
+      issuer_id: certificateData.issuerId, // Đảm bảo bạn có issuer_id
+      course_id: certificateData.courseId,
+      issue_date: certificateData.issueDate,
+      metadata: certificateData.metadata || {},
+    });
+  };
+
+  const updateCertificate = async (certificateId, updateData) => {
+    return await callMethod('update_certificate', {
+      certificate_id: certificateId,
+      ...updateData,
+    });
+  };
+
+  const revokeCertificate = async (certificateId) => {
+    return await callMethod('revoke_certificate', {
+      certificate_id: certificateId,
+    });
+  };
+  
+  const validateCertificate = async (certificateId) => {
+    try {
+      const certificate = await getCertificate(certificateId);
+      if (!certificate) {
+        return { isValid: false, message: 'Certificate not found' };
+      }
+      
+      return {
+        isValid: certificate.status !== 'revoked',
+        certificate: {
+          id: certificateId,
+          title: certificate.title,
+          recipientName: certificate.recipient_name, // Sửa key cho phù hợp với response (nếu cần)
+          recipientEmail: certificate.recipient_email, // Sửa key
+          issuerName: certificate.issuer_name, // Sửa key
+          issueDate: certificate.issue_date, // Sửa key
+          status: certificate.status || 'valid',
+          blockchainHash: certificate.hash || certificateId, // Giả sử có trường hash
+        },
+      };
+    } catch (error) {
+      console.error('Failed to validate certificate:', error);
+      return { isValid: false, message: 'Validation failed' };
+    }
+  };
+
+
+  // Tự động khởi tạo NEAR khi store được sử dụng lần đầu ở client-side
+  if (typeof window !== 'undefined') {
+    initNear().catch(err => console.error("Auto-init Near failed during store setup:", err));
+  }
+
+  return {
+    selector,
+    wallet,
+    modal,
+    accounts,
+    accountId,
+    isConnected,
+    isLoading,
+    isInitializing, // Export để UI có thể theo dõi trạng thái khởi tạo
+    initNear, // Export để có thể gọi thủ công nếu cần
+    connectWallet,
+    disconnectWallet,
+    callMethod,
+    viewMethod,
+    getCertificate,
+    getAllCertificates,
+    getUserCertificates,
+    issueCertificate,
+    updateCertificate,
+    revokeCertificate,
+    validateCertificate,
+  };
+});
+
+Các thay đổi chính và giải thích:
+
+Buffer import: Thêm import { Buffer } from 'buffer'; vì Buffer.from được sử dụng. File vite.config.js của bạn đã có alias cho buffer, điều này là cần thiết cho môi trường trình duyệt.
+initializationPromise và _doInitNear:
+_doInitNear: Là một hàm nội bộ async chứa logic khởi tạo setupWalletSelector. Nếu thất bại, nó sẽ ném lỗi ra ngoài và reset initializationPromise để cho phép thử lại.
+initNear: Hàm này không còn là async nữa. Nó quản lý initializationPromise. Nếu selector.value đã có (đã khởi tạo), nó trả về promise đã giải quyết. Nếu chưa, và chưa có initializationPromise nào, nó gọi _doInitNear và lưu trữ promise đó. Điều này ngăn chặn việc gọi setupWalletSelector nhiều lần cùng lúc.
+Cải thiện connectWallet:
+Gọi await initNear() một lần duy nhất ở đầu để đảm bảo selector đã được khởi tạo.
+Loại bỏ setTimeout và việc gọi initNear lần thứ hai.
+Xử lý lỗi rõ ràng hơn: nếu initNear (thông qua _doInitNear) ném lỗi, connectWallet sẽ bắt được.
+walletType: Tham số này giờ đây có thể được sử dụng để chọn walletId cụ thể ('meteor-wallet', 'meteor-wallet-app', 'my-near-wallet') khi gọi currentSelector.wallet(walletIdToConnect). Nếu không có walletType hợp lệ hoặc bạn muốn người dùng tự chọn, modal sẽ được hiển thị.
+Xử lý lỗi trong _doInitNear:
+Thay console.warn bằng console.error cho lỗi khởi tạo.
+throw error; để lỗi được lan truyền lên hàm gọi (ví dụ: connectWallet).
+Sử dụng selector.value trong viewMethod: Đảm bảo rằng bạn đang truy cập .value của ref selector.
+Tự động khởi tạo: Đoạn code ở cuối store (if (typeof window !== 'undefined') { initNear()... }) sẽ cố gắng khởi tạo NEAR Wallet Selector ngay khi store được import và sử dụng ở phía client. Điều này giúp selector sẵn sàng sớm hơn.
+contractId: Hãy chắc chắn rằng 'bernieio.testnet' được thay thế bằng ID contract chính xác của ứng dụng bạn trên testnet trong cả setupModal và các lệnh gọi signIn hoặc callMethod.
+setupMeteorWalletApp: Module này thường dùng cho việc tích hợp với ứng dụng di động Meteor (ví dụ qua deeplink). Nếu bạn chỉ cần hỗ trợ ví Meteor dạng extension trình duyệt hoặc web wallet, setupMeteorWallet() có thể là đủ. Tùy theo nhu cầu của bạn để quyết định có giữ lại setupMeteorWalletApp hay không. Nếu giữ lại, bạn có thể thêm một case 'meteor-app': walletIdToConnect = 'meteor-wallet-app'; trong connectWallet.
+Trong component Vue (ví dụ Home.vue):
+
+Cách bạn gọi connectWallet từ component nên xử lý lỗi một cách tường minh:
+
+Code snippet
+
+<script setup>
+// ... các import khác
+import { useNearStore } from '@/stores/near'; // Đường dẫn tới store của bạn
+import { ref } from 'vue';
+
+const nearStore = useNearStore();
+const connectionError = ref(null);
+const connectingWallet = ref(false);
+
+const handleConnect = async (walletType) => {
+  connectionError.value = null;
+  connectingWallet.value = true;
+  try {
+    console.log(`Component: Attempting to connect to ${walletType || 'default modal'}`);
+    await nearStore.connectWallet(walletType); // Truyền walletType nếu muốn kết nối ví cụ thể, hoặc không truyền gì để mở modal
+    // Thành công! Trạng thái isConnected và accountId trong store sẽ được cập nhật.
+    // UI của bạn nên phản ứng với các thay đổi này.
+    console.log('Component: Wallet connection process initiated/completed.');
+  } catch (error) {
+    console.error('Component: Wallet connection failed:', error);
+    connectionError.value = error.message || 'Không thể kết nối ví. Vui lòng thử lại.';
+  } finally {
+    connectingWallet.value = false;
+  }
+};
+</script>
+
+<template>
+  <div>
+    <button @click="handleConnect('meteor')" :disabled="nearStore.isLoading || nearStore.isInitializing || connectingWallet">
+      Kết nối Meteor Wallet (Web)
+    </button>
+    <button @click="handleConnect('mynear')" :disabled="nearStore.isLoading || nearStore.isInitializing || connectingWallet">
+      Kết nối MyNearWallet
+    </button>
+    <button @click="handleConnect()" :disabled="nearStore.isLoading || nearStore.isInitializing || connectingWallet">
+      Chọn ví để kết nối
+    </button>
+
+    <div v-if="nearStore.isLoading || nearStore.isInitializing || connectingWallet">
+      Đang xử lý...
+    </div>
+    <div v-if="connectionError" style="color: red;">
+      Lỗi: {{ connectionError }}
+    </div>
+    <div v-if="nearStore.isConnected">
+      Đã kết nối với tài khoản: {{ nearStore.accountId }}
+      <button @click="nearStore.disconnectWallet()">Ngắt kết nối</button>
+    </div>
+    </div>
+</template>
+Sau khi áp dụng các thay đổi này, lỗi "NEAR wallet selector not initialized" của bạn sẽ được giải quyết bằng cách đảm bảo rằng selector được khởi tạo đúng cách và an toàn trước khi được sử dụng.
