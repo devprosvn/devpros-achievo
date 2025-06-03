@@ -3,7 +3,6 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { setupWalletSelector } from '@near-wallet-selector/core'
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
-import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { setupModal } from '@near-wallet-selector/modal-ui'
 import { providers } from 'near-api-js'
@@ -44,7 +43,6 @@ export const useNearStore = defineStore('near', () => {
         debug: true,
         modules: [
           setupMeteorWallet(),
-          setupMeteorWalletApp(),
           setupMyNearWallet(),
         ],
       })
@@ -115,9 +113,6 @@ export const useNearStore = defineStore('near', () => {
       switch (walletType) {
         case 'meteor':
           walletIdToConnect = 'meteor-wallet'
-          break
-        case 'meteor-app':
-          walletIdToConnect = 'meteor-wallet-app'
           break
         case 'mynear':
           walletIdToConnect = 'my-near-wallet'
