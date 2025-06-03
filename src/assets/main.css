@@ -1,4 +1,3 @@
-
 @import "./base.css";
 
 #app {
@@ -454,8 +453,9 @@
 /* Remove the problematic grid layout */
 body {
   margin: 0;
-  padding: 0;
-  width: 100%;
+  min-width: 320px;
+  min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 /* Dark mode support */
@@ -464,7 +464,7 @@ body {
     background: #1f2937;
     color: white;
   }
-  
+
   .form-group input,
   .form-group textarea,
   .form-group select {
@@ -472,11 +472,11 @@ body {
     border-color: #4b5563;
     color: white;
   }
-  
+
   .text-gray-600 {
     color: #9ca3af;
   }
-  
+
   .text-gray-900 {
     color: #f9fafb;
   }
@@ -487,17 +487,17 @@ body {
   .container {
     padding: 0 0.75rem;
   }
-  
+
   .btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .text-4xl {
     font-size: 2rem;
     line-height: 2.25rem;
   }
-  
+
   .text-3xl {
     font-size: 1.75rem;
     line-height: 2rem;
@@ -593,7 +593,7 @@ body {
     gap: 1.5rem;
     padding: 1rem;
   }
-  
+
   .column-card {
     padding: 1.5rem;
   }
