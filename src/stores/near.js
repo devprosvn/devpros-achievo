@@ -8,6 +8,7 @@ export const useNearStore = defineStore('near', () => {
   const contract = ref(null)
   const accountId = ref(null)
   const isConnected = ref(false)
+  const isLoading = ref(false)
 
   const nearConfig = {
     networkId: "testnet",
@@ -20,13 +21,11 @@ export const useNearStore = defineStore('near', () => {
 
   const initNear = async () => {
     try {
-      // Check if we're in browser environment
       if (typeof window === 'undefined') {
         console.log('NEAR initialization skipped (not in browser)')
         return
       }
       
-      // Add a delay to ensure browser environment is ready
       await new Promise(resolve => setTimeout(resolve, 500))
       
       const near = await connect(nearConfig)
@@ -36,36 +35,36 @@ export const useNearStore = defineStore('near', () => {
         accountId.value = wallet.value.getAccountId()
         isConnected.value = true
         
-        // Initialize contract
         contract.value = new Contract(
           wallet.value.account(),
           'bernieio.testnet',
           {
-            viewMethods: ['get_certificate', 'get_all_certificates'],
-            changeMethods: ['issue_certificate', 'update_certificate'],
+            viewMethods: ['get_certificate', 'get_all_certificates', 'get_user_certificates'],
+            changeMethods: ['issue_certificate', 'update_certificate', 'revoke_certificate'],
           }
         )
       }
     } catch (error) {
-      console.warn('NEAR initialization failed (this is normal during development):', error)
-      // Don't throw the error, just log it
+      console.warn('NEAR initialization failed:', error)
     }
   }
 
   const connectWallet = async (walletType = 'near') => {
     try {
+      isLoading.value = true
+      
       if (walletType === 'meteor') {
-        // Meteor Wallet integration
         window.open('https://meteorwallet.app/', '_blank')
       } else if (walletType === 'mynear') {
-        // MyNearWallet integration
         window.open('https://mynearwallet.com/', '_blank')
       } else {
-        // Default NEAR wallet
         await wallet.value.requestSignIn('bernieio.testnet', 'Achievo App')
       }
     } catch (error) {
       console.error('Failed to connect wallet:', error)
+      throw error
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -98,13 +97,96 @@ export const useNearStore = defineStore('near', () => {
     }
   }
 
-  const issueCertificate = async (certificateData) => {
-    if (!contract.value) return null
+  const getUserCertificates = async (userId) => {
+    if (!contract.value) return []
     try {
-      return await contract.value.issue_certificate(certificateData)
+      return await contract.value.get_user_certificates({ user_id: userId })
+    } catch (error) {
+      console.error('Failed to get user certificates:', error)
+      return []
+    }
+  }
+
+  const issueCertificate = async (certificateData) => {
+    if (!contract.value) throw new Error('Contract not initialized')
+    try {
+      isLoading.value = true
+      const result = await contract.value.issue_certificate({
+        certificate_id: certificateData.id,
+        title: certificateData.title,
+        recipient_name: certificateData.recipientName,
+        recipient_email: certificateData.recipientEmail,
+        issuer_name: certificateData.issuerName,
+        issuer_id: certificateData.issuerId,
+        course_id: certificateData.courseId,
+        issue_date: certificateData.issueDate,
+        metadata: certificateData.metadata || {}
+      })
+      return result
     } catch (error) {
       console.error('Failed to issue certificate:', error)
       throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const updateCertificate = async (certificateId, updateData) => {
+    if (!contract.value) throw new Error('Contract not initialized')
+    try {
+      isLoading.value = true
+      const result = await contract.value.update_certificate({
+        certificate_id: certificateId,
+        ...updateData
+      })
+      return result
+    } catch (error) {
+      console.error('Failed to update certificate:', error)
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const revokeCertificate = async (certificateId) => {
+    if (!contract.value) throw new Error('Contract not initialized')
+    try {
+      isLoading.value = true
+      const result = await contract.value.revoke_certificate({
+        certificate_id: certificateId
+      })
+      return result
+    } catch (error) {
+      console.error('Failed to revoke certificate:', error)
+      throw error
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  const validateCertificate = async (certificateId) => {
+    try {
+      const certificate = await getCertificate(certificateId)
+      if (!certificate) {
+        return { isValid: false, message: 'Certificate not found' }
+      }
+      
+      return {
+        isValid: certificate.status !== 'revoked',
+        certificate: {
+          id: certificateId,
+          title: certificate.title,
+          recipientName: certificate.recipient_name,
+          recipientEmail: certificate.recipient_email,
+          issuerName: certificate.issuer_name,
+          issueDate: certificate.issue_date,
+          status: certificate.status || 'valid',
+          blockchainHash: certificate.hash || certificateId
+        }
+      }
+    } catch (error) {
+      console.error('Failed to validate certificate:', error)
+      return { isValid: false, message: 'Validation failed' }
     }
   }
 
@@ -113,11 +195,16 @@ export const useNearStore = defineStore('near', () => {
     contract,
     accountId,
     isConnected,
+    isLoading,
     initNear,
     connectWallet,
     disconnectWallet,
     getCertificate,
     getAllCertificates,
-    issueCertificate
+    getUserCertificates,
+    issueCertificate,
+    updateCertificate,
+    revokeCertificate,
+    validateCertificate
   }
 })
