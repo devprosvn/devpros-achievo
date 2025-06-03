@@ -115,7 +115,7 @@ body {
   color: white;
   box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.4);
   font-weight: 600;
-  padding: 0.875rem 1.75rem;
+  padding: 0.75rem 1.5rem;
 }
 
 .btn-primary:hover {
@@ -130,7 +130,7 @@ body {
   border: 2px solid rgba(59, 130, 246, 0.2);
   backdrop-filter: blur(10px);
   font-weight: 600;
-  padding: 0.875rem 1.75rem;
+  padding: 0.75rem 1.25rem;
 }
 
 .btn-secondary:hover {

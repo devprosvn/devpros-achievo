@@ -52,12 +52,12 @@
           <div class="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               @click="setIsWalletModalOpen(true)"
-              class="btn btn-primary btn-lg"
+              class="btn btn-primary px-6 py-3 text-base"
             >
               Get Started Now
-              <ArrowRightIcon class="w-5 h-5" />
+              <ArrowRightIcon class="w-4 h-4" />
             </button>
-            <button class="btn btn-secondary">
+            <button class="btn btn-secondary px-5 py-3 text-base">
               Learn More
             </button>
           </div>
@@ -118,16 +118,16 @@
       <div class="absolute inset-0 bg-black opacity-10"></div>
       <div class="container relative z-10">
         <div class="text-center">
-          <h2 class="text-4xl font-bold mb-6">Ready to Get Started?</h2>
-          <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+          <h2 class="text-4xl font-bold mb-6 text-white">Ready to Get Started?</h2>
+          <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90 text-white">
             Join thousands of learners and organizations already using Achievo for secure digital credentials.
           </p>
           <button 
             @click="setIsWalletModalOpen(true)" 
-            class="btn btn-lg bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-8 py-4 shadow-lg"
+            class="btn bg-white text-blue-600 hover:bg-gray-100 hover:text-blue-700 font-bold px-6 py-3 shadow-lg"
           >
             Connect Wallet Now
-            <ArrowRightIcon class="w-5 h-5" />
+            <ArrowRightIcon class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -179,11 +179,6 @@ const handleWalletConnect = (walletType) => {
 </script>
 
 <style scoped>
-.btn-lg {
-  padding: 1rem 2rem;
-  font-size: 1.125rem;
-}
-
 /* Add staggered animation delays */
 .feature-card:nth-child(1) { animation-delay: 0s; }
 .feature-card:nth-child(2) { animation-delay: 0.2s; }
