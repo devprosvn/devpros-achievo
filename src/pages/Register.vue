@@ -1,37 +1,10 @@
+
 <template>
-  <div class="min-h-screen bg-white">
-    <!-- Header Component -->
-    <header class="sticky top-0 z-50 bg-white border-b">
-      <div class="container mx-auto px-4">
-        <div class="flex h-16 items-center justify-between">
-          <!-- Logo -->
-          <router-link to="/" class="flex items-center gap-2">
-            <UserIcon class="h-8 w-8 text-blue-600" />
-            <span class="text-xl font-bold">Achievo</span>
-          </router-link>
-
-          <!-- Desktop Navigation -->
-          <nav class="hidden md:flex items-center gap-8">
-            <router-link to="/" class="text-sm font-medium hover:text-blue-600 transition-colors">Home</router-link>
-            <router-link to="/marketplace" class="text-sm font-medium hover:text-blue-600 transition-colors">Marketplace</router-link>
-            <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">About</a>
-            <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">FAQ</a>
-          </nav>
-
-          <!-- Auth Links -->
-          <div class="flex items-center gap-4">
-            <router-link to="/login" class="text-sm font-medium hover:text-blue-600 transition-colors">Login</router-link>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <div class="flex items-center justify-center py-20 bg-gray-50">
   <div class="register-page">
     <div class="register-container">
       <div class="register-form">
         <h2>Register for Achievo</h2>
-
+        
         <div class="user-type-selector">
           <button 
             @click="userType = 'student'" 
@@ -173,15 +146,12 @@
       </div>
     </div>
   </div>
-</div>
-  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { UserIcon } from '@heroicons/vue/24/outline'
+import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -220,7 +190,7 @@ const handleRegister = async () => {
         userType: 'organization'
       })
     }
-
+    
     alert('Registration successful! Please login.')
     router.push('/login')
   } catch (error) {
