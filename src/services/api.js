@@ -43,7 +43,7 @@ const mockData = {
       level: 'Beginner',
       priceNEAR: '5',
       priceUSD: '15',
-      image: null
+      image: '/vue-js-logo.png'
     },
     {
       id: 2,
