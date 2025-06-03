@@ -55,7 +55,7 @@ const mockData = {
       level: 'Intermediate',
       priceNEAR: '8',
       priceUSD: '24',
-      image: null
+      image: '/ui-ux-design-banner.png'
     },
     {
       id: 3,
