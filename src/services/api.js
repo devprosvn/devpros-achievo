@@ -157,41 +157,6 @@ const mockData = {
 }
 
 // Fallback to mock data when API is not available
-
-// Create a simple API client
-export const apiClient = {
-  get: async (url) => {
-    // Mock API responses
-    if (url.includes('/courses')) {
-      return { data: mockData.courses }
-    }
-    if (url.includes('/certificates')) {
-      return { data: mockData.certificates }
-    }
-    if (url.includes('/rewards')) {
-      return { data: mockData.rewards }
-    }
-    return { data: [] }
-  },
-  
-  post: async (url, data) => {
-    console.log('Mock API POST:', url, data)
-    return { data: { success: true } }
-  },
-  
-  put: async (url, data) => {
-    console.log('Mock API PUT:', url, data)
-    return { data: { success: true } }
-  },
-  
-  delete: async (url) => {
-    console.log('Mock API DELETE:', url)
-    return { data: { success: true } }
-  }
-}
-
-// Export mock data as well
-export { mockData }
 const createMockApiCall = (data) => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -207,5 +172,11 @@ if (process.env.NODE_ENV === 'development') {
   api.getRewards = () => createMockApiCall(mockData.rewards)
   api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
 }
+
+// Export the apiClient for direct access
+export { apiClient }
+
+// Export mock data as well  
+export { mockData }
 
 export default api
