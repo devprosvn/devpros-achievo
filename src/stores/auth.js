@@ -1,0 +1,65 @@
+
+import { defineStore } from 'pinia'
+import { ref } from 'vue'
+import { apiClient } from '../services/api'
+
+export const useAuthStore = defineStore('auth', () => {
+  const user = ref(null)
+  const isAuthenticated = ref(false)
+  const userType = ref('student') // 'student' or 'organization'
+
+  const login = async (credentials) => {
+    try {
+      const response = await apiClient.post('/api/auth/login', credentials)
+      user.value = response.data.user
+      isAuthenticated.value = true
+      localStorage.setItem('token', response.data.token)
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const register = async (userData) => {
+    try {
+      const response = await apiClient.post('/api/auth/register', userData)
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const registerOrganization = async (orgData) => {
+    try {
+      const response = await apiClient.post('/api/auth/register-org', orgData)
+      return response.data
+    } catch (error) {
+      throw error
+    }
+  }
+
+  const logout = () => {
+    user.value = null
+    isAuthenticated.value = false
+    localStorage.removeItem('token')
+  }
+
+  const initializeAuth = () => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      isAuthenticated.value = true
+      // You might want to verify token with backend here
+    }
+  }
+
+  return {
+    user,
+    isAuthenticated,
+    userType,
+    login,
+    register,
+    registerOrganization,
+    logout,
+    initializeAuth
+  }
+})
