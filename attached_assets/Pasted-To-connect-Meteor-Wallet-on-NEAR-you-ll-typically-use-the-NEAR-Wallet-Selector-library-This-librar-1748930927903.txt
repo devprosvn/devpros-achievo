@@ -1,0 +1,49 @@
+To connect Meteor Wallet on NEAR, you'll typically use the NEAR Wallet Selector library. This library helps integrate various NEAR wallets into your dApp, and Meteor Wallet is one of the supported wallets. The process involves adding the setupMeteorWallet module to the Wallet Selector configuration. 
+Here's a more detailed breakdown:
+1. Install the necessary packages:
+Mã
+
+# Using Yarn
+yarn add @near-wallet-selector/core @near-wallet-selector/modal-ui @near-wallet-selector/meteor-wallet
+# Using NPM
+npm install @near-wallet-selector/core @near-wallet-selector/modal-ui @near-wallet-selector/meteor-wallet
+2. Import the necessary modules:
+JavaScript
+
+import { setupWalletSelector } from "@near-wallet-selector/core";
+import { setupModal } from "@near-wallet-selector/modal-ui";
+import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
+3. Configure the Wallet Selector:
+JavaScript
+
+const selector = await setupWalletSelector({
+  network: "testnet", // or your desired network
+  modules: [
+    setupModal(),
+    setupMeteorWallet()
+  ]
+});
+4. Connect the wallet (example using modal):
+JavaScript
+
+const connect = async () => {
+  if (selector.wallet) {
+    // Wallet already connected, no need to connect again
+    return selector.wallet;
+  }
+  if (!selector.wallet) {
+    await selector.signIn();
+    return selector.wallet;
+  }
+};
+5. Interact with the wallet:
+JavaScript
+
+const meteor = await selector.wallet("meteor-wallet");
+const signedMessage = await meteor.signMessage(params);
+Key points:
+Wallet Selector: This library provides a user-friendly way to choose and connect different NEAR wallets, including Meteor Wallet. 
+setupMeteorWallet(): This function adds Meteor Wallet as a supported wallet within the Wallet Selector. 
+selector.wallet: This property provides access to the currently connected wallet. 
+selector.signIn(): This function initiates the connection process with the selected wallet. 
+meteor.signMessage(): This function allows you to request a signed message from the Meteor Wallet. 
