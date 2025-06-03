@@ -1,108 +1,109 @@
 
 <template>
-  <div class="flex min-h-screen flex-col">
+  <div class="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-800">
     <!-- Header -->
-    <header class="sticky top-0 z-40 border-b bg-white">
-      <div class="container mx-auto px-4 flex h-16 items-center justify-between">
-        <div class="flex items-center gap-2">
-          <span class="text-xl font-bold font-aptos-bold-italic">Achievo</span>
-        </div>
-        <div class="flex items-center gap-4">
-          <nav class="hidden md:flex">
-            <ul class="flex items-center gap-6">
-              <li>
-                <a href="#" class="text-sm font-medium hover:text-blue-600 font-aptos transition-colors">
-                  Home
-                </a>
-              </li>
-              <li>
-                <router-link to="/marketplace" class="text-sm font-medium hover:text-blue-600 font-aptos transition-colors">
-                  Marketplace
-                </router-link>
-              </li>
-              <li>
-                <a href="#" class="text-sm font-medium hover:text-blue-600 font-aptos transition-colors">
-                  About
-                </a>
-              </li>
-              <li>
-                <a href="#" class="text-sm font-medium hover:text-blue-600 font-aptos transition-colors">
-                  FAQ
-                </a>
-              </li>
-            </ul>
-          </nav>
-          <button 
-            v-if="connectedWallet" 
-            class="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium hover:bg-gray-50 transition-colors"
-          >
-            <div class="h-2 w-2 rounded-full bg-green-500"></div>
-            {{ connectedWallet === "meteor" ? "Meteor" : "MyNear" }} Connected
-          </button>
-          <button 
-            v-else
-            @click="setIsWalletModalOpen(true)" 
-            class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
-          >
-            Connect Wallet
-          </button>
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <div class="flex items-center justify-between w-full">
+            <router-link to="/" class="logo">
+              Achievo
+            </router-link>
+            
+            <nav class="hidden md:flex items-center gap-2">
+              <a href="#" class="nav-link">Home</a>
+              <router-link to="/marketplace" class="nav-link">Marketplace</router-link>
+              <a href="#" class="nav-link">About</a>
+              <a href="#" class="nav-link">FAQ</a>
+            </nav>
+            
+            <div class="flex items-center gap-3">
+              <button 
+                v-if="connectedWallet" 
+                class="btn btn-secondary text-sm"
+              >
+                <div class="w-2 h-2 bg-green-400 rounded-full"></div>
+                {{ connectedWallet === "meteor" ? "Meteor" : "MyNear" }} Connected
+              </button>
+              <button 
+                v-else
+                @click="setIsWalletModalOpen(true)" 
+                class="btn btn-primary"
+              >
+                Connect Wallet
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="bg-gradient-to-b from-blue-50 to-white py-20">
-      <div class="container mx-auto px-4 flex flex-col items-center gap-8 text-center">
-        <h1 class="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl font-aptos">
-          Secure Digital Credentials on <span class="text-blue-600">Blockchain</span>
-        </h1>
-        <p class="max-w-2xl text-lg text-gray-600 font-aptos-italic">
-          Achievo leverages NEAR Protocol to provide tamper-proof certificates and rewards for learners and
-          organizations.
-        </p>
-        <div class="flex flex-col gap-4 sm:flex-row">
-          <button 
-            @click="setIsWalletModalOpen(true)"
-            class="px-6 py-3 bg-blue-600 text-white rounded-md text-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            Connect Wallet
-          </button>
-          <button class="px-6 py-3 border border-gray-300 text-gray-700 rounded-md text-lg font-medium hover:bg-gray-50 transition-colors">
-            Learn More
-          </button>
+    <section class="hero">
+      <div class="container">
+        <div class="hero-content fade-in">
+          <h1 class="hero-title">
+            Secure Digital Credentials on 
+            <span class="text-white">Blockchain</span>
+          </h1>
+          <p class="hero-subtitle">
+            Achievo leverages NEAR Protocol to provide tamper-proof certificates and rewards for learners and organizations worldwide.
+          </p>
+          <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button 
+              @click="setIsWalletModalOpen(true)"
+              class="btn btn-primary btn-lg"
+            >
+              Get Started Now
+              <ArrowRightIcon class="w-5 h-5" />
+            </button>
+            <button class="btn btn-secondary">
+              Learn More
+            </button>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- Features Section -->
-    <section class="py-20 bg-white">
-      <div class="container mx-auto px-4">
-        <h2 class="mb-12 text-center text-3xl font-bold font-aptos">Platform Benefits</h2>
-        <div class="grid gap-8 md:grid-cols-3">
-          <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
-            <div class="rounded-full bg-blue-100 p-3">
-              <ShieldCheckIcon class="h-6 w-6 text-blue-600" />
+    <section class="py-20 bg-white relative">
+      <div class="container">
+        <div class="text-center mb-16 slide-up">
+          <h2 class="text-4xl font-bold text-gradient mb-4">
+            Platform Benefits
+          </h2>
+          <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+            Experience the future of digital credentials with blockchain technology
+          </p>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card slide-up">
+            <div class="feature-icon">
+              <ShieldCheckIcon class="w-8 h-8" />
             </div>
-            <h3 class="text-xl font-bold font-aptos">Secure Authentication</h3>
-            <p class="text-gray-600 font-aptos-italic">
+            <h3 class="text-xl font-bold mb-3 text-gray-900">Secure Authentication</h3>
+            <p class="text-gray-600">
               Blockchain-based verification ensures your credentials cannot be forged or tampered with.
             </p>
           </div>
-          <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
-            <div class="rounded-full bg-green-100 p-3">
-              <TrophyIcon class="h-6 w-6 text-green-600" />
+          
+          <div class="feature-card slide-up" style="animation-delay: 0.2s">
+            <div class="feature-icon">
+              <TrophyIcon class="w-8 h-8" />
             </div>
-            <h3 class="text-xl font-bold font-aptos">Dynamic NFT Certificates</h3>
-            <p class="text-gray-600 font-aptos-italic">
+            <h3 class="text-xl font-bold mb-3 text-gray-900">Dynamic NFT Certificates</h3>
+            <p class="text-gray-600">
               Certificates evolve as you complete more courses, showcasing your growing expertise.
             </p>
           </div>
-          <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
-            <div class="rounded-full bg-purple-100 p-3">
-              <CheckCircleIcon class="h-6 w-6 text-purple-600" />
+          
+          <div class="feature-card slide-up" style="animation-delay: 0.4s">
+            <div class="feature-icon">
+              <CheckCircleIcon class="w-8 h-8" />
             </div>
-            <h3 class="text-xl font-bold font-aptos">Instant Verification</h3>
-            <p class="text-gray-600 font-aptos-italic">
+            <h3 class="text-xl font-bold mb-3 text-gray-900">Instant Verification</h3>
+            <p class="text-gray-600">
               Employers can instantly verify your credentials with a simple certificate ID.
             </p>
           </div>
@@ -111,41 +112,40 @@
     </section>
 
     <!-- CTA Section -->
-    <section class="bg-blue-600 py-16 text-white">
-      <div class="container mx-auto px-4 flex flex-col items-center gap-6 text-center">
-        <h2 class="text-3xl font-bold font-aptos">Ready to Get Started?</h2>
-        <p class="max-w-2xl text-blue-100 font-aptos-italic">
-          Join thousands of learners and organizations already using Achievo for secure digital credentials.
-        </p>
-        <button 
-          @click="setIsWalletModalOpen(true)" 
-          class="flex items-center gap-2 px-6 py-3 bg-white text-blue-600 rounded-md text-lg font-medium hover:bg-gray-100 transition-colors mt-4"
-        >
-          Connect Wallet 
-          <ArrowRightIcon class="h-4 w-4" />
-        </button>
+    <section class="py-20 bg-gradient-to-r from-blue-600 to-purple-700 text-white relative overflow-hidden">
+      <div class="absolute inset-0 bg-black opacity-10"></div>
+      <div class="container relative z-10">
+        <div class="text-center">
+          <h2 class="text-4xl font-bold mb-6">Ready to Get Started?</h2>
+          <p class="text-xl mb-8 max-w-2xl mx-auto opacity-90">
+            Join thousands of learners and organizations already using Achievo for secure digital credentials.
+          </p>
+          <button 
+            @click="setIsWalletModalOpen(true)" 
+            class="btn btn-primary btn-lg bg-white text-blue-600 hover:bg-gray-100"
+          >
+            Connect Wallet Now
+            <ArrowRightIcon class="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </section>
 
     <!-- Footer -->
-    <footer class="border-t py-12 bg-white">
-      <div class="container mx-auto px-4">
-        <div class="flex flex-col items-center justify-between gap-6 md:flex-row">
-          <div class="flex items-center gap-2">
-            <span class="text-xl font-bold font-aptos-bold-italic">Achievo</span>
+    <footer class="bg-gray-900 text-white py-12">
+      <div class="container">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="logo text-white">
+            Achievo
           </div>
           <div class="flex gap-8">
-            <a href="#" class="text-sm text-gray-600 hover:text-blue-600 font-aptos transition-colors">
-              Terms
-            </a>
-            <a href="#" class="text-sm text-gray-600 hover:text-blue-600 font-aptos transition-colors">
-              Privacy
-            </a>
-            <a href="#" class="text-sm text-gray-600 hover:text-blue-600 font-aptos transition-colors">
-              Contact
-            </a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Terms</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Privacy</a>
+            <a href="#" class="text-gray-400 hover:text-white transition-colors">Contact</a>
           </div>
-          <div class="text-sm text-gray-600 font-aptos-italic">© 2023 Achievo. All rights reserved.</div>
+          <div class="text-gray-400">
+            © 2024 Achievo. All rights reserved.
+          </div>
         </div>
       </div>
     </footer>
@@ -177,18 +177,13 @@ const handleWalletConnect = (walletType) => {
 </script>
 
 <style scoped>
-.font-aptos {
-  font-family: 'Aptos', Arial, sans-serif;
+.btn-lg {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
 }
 
-.font-aptos-bold-italic {
-  font-family: 'Aptos', Arial, sans-serif;
-  font-weight: bold;
-  font-style: italic;
-}
-
-.font-aptos-italic {
-  font-family: 'Aptos', Arial, sans-serif;
-  font-style: italic;
-}
+/* Add staggered animation delays */
+.feature-card:nth-child(1) { animation-delay: 0s; }
+.feature-card:nth-child(2) { animation-delay: 0.2s; }
+.feature-card:nth-child(3) { animation-delay: 0.4s; }
 </style>
