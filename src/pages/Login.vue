@@ -1,60 +1,89 @@
-
 <template>
-  <div class="login-page">
-    <div class="login-container">
-      <div class="login-form">
-        <h2>Login to Achievo</h2>
-        <form @submit.prevent="handleLogin">
-          <div class="form-group">
-            <label for="email">Email</label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              required
-              placeholder="Enter your email"
-            />
-          </div>
-          <div class="form-group">
-            <label for="password">Password</label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              required
-              placeholder="Enter your password"
-            />
-          </div>
-          <div class="form-group">
-            <label for="userType">Login as</label>
-            <select id="userType" v-model="form.userType">
-              <option value="student">Student</option>
-              <option value="organization">Organization</option>
-            </select>
-          </div>
-          <button type="submit" class="btn btn-primary" :disabled="loading">
-            {{ loading ? 'Logging in...' : 'Login' }}
-          </button>
-        </form>
-        
-        <div class="wallet-section">
-          <h3>Or connect with NEAR Wallet</h3>
-          <div class="wallet-buttons">
-            <button @click="connectWallet('near')" class="btn btn-wallet">
-              Connect NEAR Wallet
-            </button>
-            <button @click="connectWallet('meteor')" class="btn btn-wallet">
-              Connect Meteor Wallet
-            </button>
-            <button @click="connectWallet('mynear')" class="btn btn-wallet">
-              Connect MyNearWallet
-            </button>
+  <div class="min-h-screen bg-white">
+    <!-- Header Component -->
+    <header class="sticky top-0 z-50 bg-white border-b">
+      <div class="container mx-auto px-4">
+        <div class="flex h-16 items-center justify-between">
+          <!-- Logo -->
+          <router-link to="/" class="flex items-center gap-2">
+            <AwardIcon class="h-8 w-8 text-blue-600" />
+            <span class="text-xl font-bold">Achievo</span>
+          </router-link>
+
+          <!-- Desktop Navigation -->
+          <nav class="hidden md:flex items-center gap-8">
+            <router-link to="/" class="text-sm font-medium hover:text-blue-600 transition-colors">Home</router-link>
+            <router-link to="/marketplace" class="text-sm font-medium hover:text-blue-600 transition-colors">Marketplace</router-link>
+            <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">About</a>
+            <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">FAQ</a>
+          </nav>
+
+          <!-- Auth Links -->
+          <div class="flex items-center gap-4">
+            <router-link to="/register" class="text-sm font-medium hover:text-blue-600 transition-colors">Register</router-link>
           </div>
         </div>
+      </div>
+    </header>
 
-        <p class="login-footer">
-          Don't have an account? <router-link to="/register">Register here</router-link>
-        </p>
+    <div class="flex items-center justify-center py-20 bg-gray-50">
+      <div class="login-page">
+        <div class="login-container">
+          <div class="login-form">
+            <h2>Login to Achievo</h2>
+            <form @submit.prevent="handleLogin">
+              <div class="form-group">
+                <label for="email">Email</label>
+                <input
+                  id="email"
+                  v-model="form.email"
+                  type="email"
+                  required
+                  placeholder="Enter your email"
+                />
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                  id="password"
+                  v-model="form.password"
+                  type="password"
+                  required
+                  placeholder="Enter your password"
+                />
+              </div>
+              <div class="form-group">
+                <label for="userType">Login as</label>
+                <select id="userType" v-model="form.userType">
+                  <option value="student">Student</option>
+                  <option value="organization">Organization</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary" :disabled="loading">
+                {{ loading ? 'Logging in...' : 'Login' }}
+              </button>
+            </form>
+
+            <div class="wallet-section">
+              <h3>Or connect with NEAR Wallet</h3>
+              <div class="wallet-buttons">
+                <button @click="connectWallet('near')" class="btn btn-wallet">
+                  Connect NEAR Wallet
+                </button>
+                <button @click="connectWallet('meteor')" class="btn btn-wallet">
+                  Connect Meteor Wallet
+                </button>
+                <button @click="connectWallet('mynear')" class="btn btn-wallet">
+                  Connect MyNearWallet
+                </button>
+              </div>
+            </div>
+
+            <p class="login-footer">
+              Don't have an account? <router-link to="/register">Register here</router-link>
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -62,8 +91,9 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
+import { AwardIcon } from '@heroicons/vue/24/outline'
 import { useNearStore } from '../stores/near'
 
 const router = useRouter()
@@ -82,7 +112,7 @@ const handleLogin = async () => {
   try {
     await authStore.login(form.value)
     authStore.userType = form.value.userType
-    
+
     if (form.value.userType === 'student') {
       router.push('/student-dashboard')
     } else {
