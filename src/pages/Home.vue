@@ -1,4 +1,3 @@
-
 <template>
   <div class="min-h-screen bg-white">
     <!-- Header Component -->
@@ -7,10 +6,10 @@
         <div class="flex h-16 items-center justify-between">
           <!-- Logo -->
           <div class="flex items-center gap-2">
-            <AwardIcon class="h-8 w-8 text-blue-600" />
+            <TrophyIcon class="h-8 w-8 text-blue-600" />
             <span class="text-xl font-bold">Achievo</span>
           </div>
-          
+
           <!-- Desktop Navigation -->
           <nav class="hidden md:flex items-center gap-8">
             <router-link to="/" class="text-sm font-medium hover:text-blue-600 transition-colors">Home</router-link>
@@ -18,7 +17,7 @@
             <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">About</a>
             <a href="#" class="text-sm font-medium hover:text-blue-600 transition-colors">FAQ</a>
           </nav>
-          
+
           <!-- Wallet Connection -->
           <div class="flex items-center gap-4">
             <button 
@@ -28,7 +27,7 @@
             >
               Connect Wallet
             </button>
-            
+
             <div v-else class="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2">
               <div class="w-2 h-2 bg-green-500 rounded-full"></div>
               <span class="text-sm font-medium">{{ nearStore.accountId?.split('.')[0] || 'Wallet' }}</span>
@@ -47,11 +46,11 @@
             Secure Digital Credentials on 
             <span class="text-blue-600">Blockchain</span>
           </h1>
-          
+
           <p class="max-w-2xl text-lg text-gray-600">
             Achievo leverages NEAR Protocol to provide tamper-proof certificates and rewards for learners and organizations.
           </p>
-          
+
           <div class="flex flex-col gap-4 sm:flex-row">
             <button 
               @click="openWalletModal"
@@ -71,7 +70,7 @@
     <section class="bg-white py-20">
       <div class="container mx-auto px-4">
         <h2 class="text-center text-3xl font-bold mb-12">Platform Benefits</h2>
-        
+
         <div class="grid md:grid-cols-3 gap-8">
           <!-- Feature Card 1 -->
           <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
@@ -83,18 +82,18 @@
               Blockchain-based verification ensures your credentials cannot be forged or tampered with.
             </p>
           </div>
-          
+
           <!-- Feature Card 2 -->
           <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <AwardIcon class="h-6 w-6 text-green-600" />
+              <TrophyIcon class="h-6 w-6 text-green-600" />
             </div>
             <h3 class="text-xl font-bold">Dynamic NFT Certificates</h3>
             <p class="text-gray-600">
               Certificates evolve as you complete more courses, showcasing your growing expertise.
             </p>
           </div>
-          
+
           <!-- Feature Card 3 -->
           <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
@@ -134,17 +133,17 @@
         <div class="flex flex-col items-center justify-between gap-6 md:flex-row">
           <!-- Logo -->
           <div class="flex items-center gap-2">
-            <AwardIcon class="h-6 w-6 text-blue-600" />
+            <TrophyIcon class="h-6 w-6 text-blue-600" />
             <span class="font-bold">Achievo</span>
           </div>
-          
+
           <!-- Links -->
           <nav class="flex gap-8">
             <a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Terms</a>
             <a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Privacy</a>
             <a href="#" class="text-sm text-gray-500 hover:text-blue-600 transition-colors">Contact</a>
           </nav>
-          
+
           <!-- Copyright -->
           <p class="text-sm text-gray-500">© 2023 Achievo. All rights reserved.</p>
         </div>
@@ -188,7 +187,7 @@
                     </p>
                   </div>
                 </div>
-                
+
                 <div class="mt-6">
                   <div class="grid gap-4 py-4">
                     <!-- Meteor Wallet Button -->
@@ -203,13 +202,13 @@
                         </div>
                         <span class="font-medium">Meteor Wallet</span>
                       </div>
-                      
+
                       <div v-if="connecting && connectingWallet === 'meteor'" class="animate-spin">
                         <div class="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                       </div>
                       <ArrowRightIcon v-else class="h-5 w-5 text-gray-400" />
                     </button>
-                    
+
                     <!-- MyNearWallet Button -->
                     <button
                       @click="connectWallet('mynear')"
@@ -222,14 +221,14 @@
                         </div>
                         <span class="font-medium">MyNearWallet</span>
                       </div>
-                      
+
                       <div v-if="connecting && connectingWallet === 'mynear'" class="animate-spin">
                         <div class="h-5 w-5 border-2 border-green-600 border-t-transparent rounded-full"></div>
                       </div>
                       <ArrowRightIcon v-else class="h-5 w-5 text-gray-400" />
                     </button>
                   </div>
-                  
+
                   <p class="text-xs text-gray-500 mt-4 text-center">
                     By connecting a wallet, you agree to our Terms of Service and Privacy Policy.
                   </p>
@@ -253,10 +252,10 @@ import {
   TransitionRoot 
 } from '@headlessui/vue'
 import {
-  AwardIcon,
   ShieldCheckIcon,
   CheckCircleIcon,
-  ArrowRightIcon
+  ArrowRightIcon,
+  TrophyIcon
 } from '@heroicons/vue/24/outline'
 import { WalletIcon } from '@heroicons/vue/24/solid'
 import { useNearStore } from '../stores/near'
@@ -280,11 +279,11 @@ const closeWalletModal = () => {
 const connectWallet = async (walletType) => {
   connecting.value = true
   connectingWallet.value = walletType
-  
+
   try {
     // Simulate connection delay
     await new Promise(resolve => setTimeout(resolve, 1500))
-    
+
     await nearStore.connectWallet(walletType)
     closeWalletModal()
   } catch (error) {

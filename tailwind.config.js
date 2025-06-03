@@ -9,6 +9,11 @@ export default {
     extend: {
       colors: {
         'muted-foreground': '#6b7280',
+      },
+      fontFamily: {
+        'sans': ['Aptos', 'system-ui', 'sans-serif'],
+        'aptos': ['Aptos', 'sans-serif'],
+        'aptos-bold-italic': ['Aptos', 'sans-serif'],
       }
     },
   },

@@ -1,9 +1,37 @@
 
+@import "./base.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "./base.css";
+/* Aptos Font Faces */
+@font-face {
+  font-family: 'Aptos';
+  src: url('/fonts/Aptos-Display.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Aptos';
+  src: url('/fonts/Aptos-Display-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Aptos';
+  src: url('/fonts/Aptos-Display-Italic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: 'Aptos';
+  src: url('/fonts/Aptos-Display-Bold-Italic.ttf') format('truetype');
+  font-weight: bold;
+  font-style: italic;
+}
 
 #app {
   width: 100%;
@@ -30,4 +58,5 @@ body {
   margin: 0;
   padding: 0;
   width: 100%;
+  font-family: 'Aptos', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
