@@ -1,0 +1,377 @@
+Okay, here's how you can approach building frontend functions in Vue.js to connect to Meteor Wallet (mobile and web) and MyNearWallet on the NEAR testnet.
+
+Connecting to NEAR Wallets with Vue.js (Testnet)
+We'll use the near-api-js library, which is the official JavaScript library for interacting with the NEAR blockchain.
+
+First, make sure you have it installed:
+
+Bash
+
+npm install near-api-js
+Or if you use Yarn:
+
+Bash
+
+yarn add near-api-js
+Here's a general structure and specific considerations for each wallet type.
+
+Core Concepts with near-api-js
+The basic flow for connecting to a NEAR wallet usually involves these steps:
+
+Configuration: Set up the Near instance with the network ID (testnet in this case) and other relevant parameters.
+Wallet Connection: Initialize a WalletConnection object.
+Request Sign-In: Redirect the user to the wallet's authorization page.
+Sign-Out: Provide a way for users to disconnect.
+Check Sign-In Status: Determine if a user is already connected.
+Vue.js Implementation Example
+Let's create a Vue component or a set of utility functions.
+
+1. Initialize NEAR Connection
+Create a helper function or a Vue service to initialize the NEAR connection.
+
+JavaScript
+
+// utils/near.js
+import { connect, keyStores, WalletConnection } from 'near-api-js';
+
+const NEAR_TESTNET_CONFIG = {
+  networkId: 'testnet',
+  keyStore: new keyStores.BrowserLocalStorageKeyStore(),
+  nodeUrl: 'https://rpc.testnet.near.org',
+  walletUrl: 'https://wallet.testnet.near.org', // General testnet wallet URL
+  helperUrl: 'https://helper.testnet.near.org',
+  explorerUrl: 'https://explorer.testnet.near.org',
+};
+
+let nearConnection;
+let walletConnection;
+let accountId;
+
+export async function initNear() {
+  if (nearConnection) return { nearConnection, walletConnection, accountId };
+
+  nearConnection = await connect(NEAR_TESTNET_CONFIG);
+  walletConnection = new WalletConnection(nearConnection, 'your-app-name'); // Replace 'your-app-name'
+  accountId = walletConnection.getAccountId();
+
+  return { nearConnection, walletConnection, accountId };
+}
+
+export function getWalletConnection() {
+  if (!walletConnection) {
+    console.warn("Call initNear() first.");
+  }
+  return walletConnection;
+}
+
+export function getAccountId() {
+  if (!walletConnection) {
+    console.warn("Call initNear() first.");
+  }
+  return walletConnection.getAccountId();
+}
+
+export function isSignedIn() {
+  if (!walletConnection) {
+    console.warn("Call initNear() first.");
+  }
+  return walletConnection.isSignedIn();
+}
+Important: Replace 'your-app-name' with a unique identifier for your application. This is used by the wallet to identify your app.
+
+2. Vue Component Example
+Code snippet
+
+<template>
+  <div>
+    <h2>NEAR Wallet Connection (Testnet)</h2>
+    <div v-if="!isUserSignedIn">
+      <button @click="connectToMyNearWallet">Connect to MyNearWallet</button>
+      <button @click="connectToMeteorWeb">Connect to Meteor Wallet (Web)</button>
+      <button @click="connectToMeteorMobile">Connect to Meteor Wallet (Mobile - QR/Deeplink)</button>
+    </div>
+    <div v-else>
+      <p>Connected Account ID: <strong>{{ userAccountId }}</strong></p>
+      <button @click="signOut">Sign Out</button>
+    </div>
+    <p v-if="errorMessage" style="color: red;">{{ errorMessage }}</p>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import { initNear, getWalletConnection, getAccountId, isSignedIn as checkSignInStatus } from '@/utils/near'; // Adjust path as needed
+import { providers } from 'near-api-js';
+
+const userAccountId = ref('');
+const isUserSignedIn = ref(false);
+const errorMessage = ref('');
+
+// Define specific wallet URLs for testnet if needed,
+// though near-api-js often handles this based on the networkId.
+// For Meteor, the walletUrl in NEAR_TESTNET_CONFIG might be sufficient for web,
+// but mobile often requires deeplinking or WalletConnect (which is more complex).
+
+// MyNearWallet often uses the standard walletUrl from near-api-js config
+const MYNEARWALLET_TESTNET_URL = 'https://testnet.mynearwallet.com/'; // Or rely on default from near-api-js
+
+// Meteor Wallet specific URLs (confirm these from their latest documentation)
+const METEOR_WALLET_WEB_TESTNET_URL = 'https://wallet.testnet.meteorwallet.app/'; // Example, verify this!
+// Meteor Mobile might use WalletConnect or a specific deeplink prefix.
+
+onMounted(async () => {
+  try {
+    await initNear();
+    isUserSignedIn.value = checkSignInStatus();
+    if (isUserSignedIn.value) {
+      userAccountId.value = getAccountId();
+    }
+  } catch (error) {
+    console.error("Error initializing NEAR:", error);
+    errorMessage.value = "Failed to initialize NEAR connection.";
+  }
+});
+
+const handleSignIn = async (walletUrl = null) => {
+  errorMessage.value = '';
+  try {
+    const wallet = getWalletConnection();
+    if (!wallet) {
+      errorMessage.value = "Wallet connection not initialized.";
+      return;
+    }
+
+    // For specific wallets, you might need to override the walletUrl
+    // if near-api-js doesn't redirect correctly by default.
+    // However, `requestSignIn` often works with the default `walletUrl`
+    // set in `NEAR_TESTNET_CONFIG` and the wallet selector on that page
+    // should list compatible wallets including MyNearWallet and Meteor (Web).
+
+    // The `successUrl` and `failureUrl` are important for redirecting back to your app.
+    await wallet.requestSignIn({
+      contractId: 'your-contract.testnet', // Optional: contract you want to interact with
+      methodNames: [], // Optional: methods on the contract your app will call
+      successUrl: window.location.origin + '/callback/success', // Customize these URLs
+      failureUrl: window.location.origin + '/callback/failure',
+      // For specific wallet hinting (might not always be respected or needed):
+      // walletUrl: walletUrl // This can sometimes force a specific wallet
+    });
+    // After redirection and successful login, the page will reload,
+    // and onMounted will update the status.
+  } catch (error) {
+    console.error("Error during sign-in:", error);
+    errorMessage.value = `Sign-in failed: ${error.message}`;
+  }
+};
+
+const connectToMyNearWallet = () => {
+  // `near-api-js` with the default testnet walletUrl (`https://wallet.testnet.near.org`)
+  // usually presents a selector where MyNearWallet can be chosen.
+  // Explicitly setting walletUrl for requestSignIn can be an option if direct routing is needed,
+  // but it's often handled by the central wallet selector.
+  console.log("Attempting to connect to MyNearWallet...");
+  handleSignIn(); // Or handleSignIn(MYNEARWALLET_TESTNET_URL); if needed and supported
+};
+
+const connectToMeteorWeb = () => {
+  // Similar to MyNearWallet, Meteor Wallet (Web) should be selectable
+  // from the default `https://wallet.testnet.near.org`.
+  // If Meteor provides a specific sign-in URL that can be used with `requestSignIn`'s `walletUrl` parameter,
+  // you can use it. Otherwise, rely on the central wallet selector.
+  console.log("Attempting to connect to Meteor Wallet (Web)...");
+  handleSignIn(); // Or handleSignIn(METEOR_WALLET_WEB_TESTNET_URL); if needed and supported
+};
+
+const connectToMeteorMobile = async () => {
+  errorMessage.value = '';
+  // Mobile wallet connections are often more complex and might require:
+  // 1. WalletConnect: `near-api-js` has some WalletConnect support. You'd need to set it up.
+  //    This typically involves displaying a QR code.
+  // 2. Deeplinking: Constructing a specific URL that opens the Meteor Wallet app.
+  //    The format is `meteorwallet://...` (verify the exact scheme and parameters).
+
+  // For this example, we'll show a conceptual placeholder.
+  // True mobile integration often needs more than just `requestSignIn`.
+  // You might need to use a library like `@near-wallet-selector/meteor-wallet`
+  // if you are using the `near-wallet-selector` setup.
+
+  // If Meteor Wallet supports WalletConnect through near-api-js's WalletConnection:
+  // This is a simplified view; WalletConnect setup can be more involved.
+  try {
+    const wallet = getWalletConnection();
+    if (!wallet) {
+      errorMessage.value = "Wallet connection not initialized.";
+      return;
+    }
+
+    // Check Meteor Wallet documentation for specific mobile connection methods.
+    // For a deeplink approach (very basic example, likely incorrect):
+    // const deepLink = `meteorwallet://testnet/connect?app=${encodeURIComponent('your-app-name')}&success_url=${encodeURIComponent(window.location.origin + '/callback/success')}`;
+    // window.location.href = deepLink;
+    // This is highly dependent on Meteor Wallet's specific deeplink API.
+
+    // If using near-api-js's built-in WalletConnect capabilities (if any for this direct use):
+    // This part is more speculative without specific guidance from Meteor Wallet on using it directly with near-api-js's WalletConnection
+    // await wallet.requestSignIn({
+    //   contractId: 'your-contract.testnet',
+    //   methodNames: [],
+    //   walletUrl: 'wc:', // This would trigger WalletConnect if supported in this context
+    // });
+
+    errorMessage.value = "Meteor Mobile connection often requires WalletConnect or specific deeplinking. " +
+                         "This example is a placeholder. Check Meteor Wallet documentation for testnet mobile integration. " +
+                         "Consider using @near-wallet-selector for easier integration.";
+    console.warn(errorMessage.value);
+
+    // A common approach for mobile when NOT using WalletSelector is to direct users
+    // to the general wallet page, and if they have Meteor set as default or select it,
+    // and are on mobile, the wallet *might* handle the transition to the app.
+    // handleSignIn();
+
+  } catch (error) {
+    console.error("Error during Meteor Mobile sign-in attempt:", error);
+    errorMessage.value = `Meteor Mobile sign-in failed: ${error.message}`;
+  }
+};
+
+const signOut = async () => {
+  errorMessage.value = '';
+  try {
+    const wallet = getWalletConnection();
+    if (wallet) {
+      wallet.signOut();
+      userAccountId.value = '';
+      isUserSignedIn.value = false;
+      // Optionally, redirect to home page or update UI
+      window.location.replace(window.location.origin + window.location.pathname);
+    }
+  } catch (error) {
+    console.error("Error during sign-out:", error);
+    errorMessage.value = "Failed to sign out.";
+  }
+};
+
+</script>
+
+<style scoped>
+button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
+}
+div {
+  margin-bottom: 10px;
+}
+</style>
+3. Handling Callbacks (Optional but Recommended)
+When the wallet redirects back to your application (to successUrl or failureUrl), you'll need to handle this. Often, the near-api-js library handles the account ID storage upon successful login automatically when the page reloads. Your onMounted hook will then pick up the signed-in state.
+
+If you define specific callback routes (e.g., /callback/success), you might want to:
+
+Parse transaction details from the URL if the sign-in was part of a function call.
+Redirect the user to an appropriate page in your app.
+Example (in your Vue Router or main app logic):
+
+JavaScript
+
+// router/index.js or App.vue
+import { onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router'; // If using Vue Router
+import { initNear, getAccountId, isSignedIn } from '@/utils/near';
+
+// ... router setup ...
+
+// In a relevant component or on app initialization
+onMounted(async () => {
+  await initNear(); // Ensure NEAR is initialized
+
+  const route = useRoute(); // If using Vue Router
+
+  // Check for transaction outcomes in URL (common after wallet redirect)
+  // near-api-js usually handles setting the accountId in localStorage by this point
+  // if the login was successful.
+  if (isSignedIn()) {
+    console.log("Callback: User is signed in with account:", getAccountId());
+    // You might have query parameters like `transactionHashes` or `account_id`
+    // For example, after a successful sign-in, near-api-js sets the account_id.
+    // If it was a transaction, `transactionHashes` would be present.
+    const transactionHashes = route.query.transactionHashes;
+    if (transactionHashes) {
+      console.log("Transaction successful:", transactionHashes);
+      // Optionally, clear query params from URL
+      // router.replace({ query: null });
+    }
+  } else if (route.query.errorCode) {
+    console.error("Login/Transaction failed:", route.query.errorMessage);
+    // router.replace({ query: null });
+  }
+});
+Specific Wallet Considerations:
+MyNearWallet (Web) & Meteor Wallet (Web)
+near-api-js Default Behavior: When you call walletConnection.requestSignIn({}), you are typically redirected to https://wallet.testnet.near.org (or mainnet equivalent). This page acts as a wallet selector. Users can choose their preferred wallet if they have multiple installed or select one to create/import an account.
+Direct Connection: If you want to suggest or attempt a direct redirect to a specific web wallet, you might be able to pass a walletUrl to requestSignIn (e.g., walletUrl: METEOR_WALLET_WEB_TESTNET_URL). However, this behavior can vary, and the standard practice is to use the central selector. The near-wallet-selector library provides more robust ways to handle specific wallet preferences.
+Meteor Wallet's signIn method: Meteor Wallet's documentation might suggest using their own SDK or specific parameters. If so, you would integrate that. However, for basic sign-in, they should be compatible with the standard near-api-js flow.
+Meteor Wallet (Mobile)
+This is often the trickiest.
+
+Deeplinking:
+
+Meteor Wallet mobile would need to expose a deeplink scheme (e.g., meteorwallet://).
+Your Vue.js app would construct a URL like meteorwallet://testnet/connect?app=your-app-name&success_url=...&failure_url=... (this is a hypothetical example; you must get the exact format from Meteor Wallet's documentation).
+You'd then redirect the browser to this deeplink: window.location.href = deeplink;.
+This typically only works well if the user is on a mobile device and has the Meteor Wallet app installed.
+Handling the callback and state synchronization can be complex.
+WalletConnect:
+
+WalletConnect is a common protocol for connecting mobile wallets to dApps.
+near-api-js has some level of WalletConnect support. You'd typically initiate a WalletConnect session, display a QR code, and the user scans it with their Meteor Wallet mobile app.
+Configuration with near-api-js:
+JavaScript
+
+// In NEAR_TESTNET_CONFIG or when creating WalletConnection
+// This is a simplified example; WalletConnect integration often requires more setup,
+// like using a WalletConnect provider.
+// walletUrl: 'wc:' // This is a placeholder, actual implementation varies.
+Recommendation: For a smoother WalletConnect experience with NEAR, the near-wallet-selector package is highly recommended as it abstracts away much of the complexity and has dedicated support for various wallets including those supporting WalletConnect.
+Using @near-wallet-selector (Recommended for complex scenarios):
+If you need robust support for multiple wallets, especially mobile ones, consider using the @near-wallet-selector library. It simplifies the process significantly.
+
+Install: npm install @near-wallet-selector/core @near-wallet-selector/modal-ui @near-wallet-selector/near-wallet @near-wallet-selector/my-near-wallet @near-wallet-selector/meteor-wallet (or their testnet equivalents if specified).
+Setup involves creating a WalletSelector instance and configuring the wallets you want to support.
+It handles UI (modals for selecting wallets) and the connection logic for each.
+Example snippet for @near-wallet-selector:
+
+JavaScript
+
+// Simplified example - see official @near-wallet-selector docs
+import { setupWalletSelector } from "@near-wallet-selector/core";
+import { setupModal } from "@near-wallet-selector/modal-ui";
+import { setupNearWallet } from "@near-wallet-selector/near-wallet";
+import { setupMyNearWallet } from "@near-wallet-selector/my-near-wallet";
+import { setupMeteorWallet } from "@near-wallet-selector/meteor-wallet";
+
+const selector = await setupWalletSelector({
+  network: "testnet",
+  modules: [
+    setupNearWallet(), // Standard NEAR Web Wallet
+    setupMyNearWallet(),
+    setupMeteorWallet(),
+  ],
+});
+
+const modal = setupModal(selector, {
+  contractId: "your-contract.testnet",
+});
+modal.show(); // Shows a modal to select a wallet
+
+// Get accounts
+// const accounts = await selector.getAccounts();
+// const activeAccount = selector.getActiveAccount();
+Summary and Best Practices
+Start with near-api-js: For basic web wallet connections (MyNearWallet, Meteor Web), near-api-js and the default wallet selector page (https://wallet.testnet.near.org) work well.
+Meteor Mobile: This requires careful attention to Meteor Wallet's specific mobile integration documentation (deeplinks or WalletConnect). If their docs are sparse on direct near-api-js mobile integration, it's a strong indicator that @near-wallet-selector is the preferred path.
+@near-wallet-selector: If you find yourself struggling with the nuances of each wallet, especially mobile or wanting a more polished UX, migrating to @near-wallet-selector will save you a lot of time. It's designed for exactly this multi-wallet scenario.
+Testnet Configuration: Always ensure networkId: 'testnet' and corresponding URLs are used.
+Error Handling: Implement robust error handling for all asynchronous operations and user interactions.
+Check Wallet Documentation: Wallet APIs and recommended practices can change. Always refer to the latest official documentation for MyNearWallet and Meteor Wallet.
+The provided Vue code gives you a starting point. You'll need to adapt the mobile connection part based on Meteor Wallet's specific testnet integration guide for mobile dApps. If they provide specific deeplink formats or WalletConnect bridge URLs for testnet, use those.
