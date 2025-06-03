@@ -65,6 +65,19 @@
   transform: translateY(-2px);
 }
 
+.btn-outline-white {
+  background: transparent;
+  color: white;
+  border: 2px solid #3b82f6;
+  padding: 0.75rem 1.5rem;
+}
+
+.btn-outline-white:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateY(-2px);
+}
+
 .btn-danger {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   color: white;
