@@ -22,8 +22,25 @@
               </svg>
             </div>
             <div class="wallet-info">
-              <h3>Meteor Wallet</h3>
-              <p>Fast and secure NEAR wallet</p>
+              <h3>Meteor Wallet (Browser Extension)</h3>
+              <p>Fast and secure NEAR wallet extension</p>
+            </div>
+            <div class="wallet-arrow">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+
+          <button @click="connectWallet('meteor-app')" class="wallet-option">
+            <div class="wallet-icon">
+              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 1C5.9 1 5 1.9 5 3v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2H7zm0 2h10v16H7V3z"/>
+              </svg>
+            </div>
+            <div class="wallet-info">
+              <h3>Meteor Wallet (Mobile App)</h3>
+              <p>Mobile app version of Meteor Wallet</p>
             </div>
             <div class="wallet-arrow">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,23 +58,6 @@
             <div class="wallet-info">
               <h3>MyNearWallet</h3>
               <p>Official NEAR wallet solution</p>
-            </div>
-            <div class="wallet-arrow">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </button>
-
-          <button @click="connectWallet('near')" class="wallet-option">
-            <div class="wallet-icon">
-              <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.73 5.24-.73 5.24-.15.97-.32 1.64-.8 1.95-.48.3-1.01.16-1.48-.1-.64-.36-1.33-.84-2.11-1.38-.78-.54-1.57-1.08-2.4-1.55-.83-.47-1.69-.87-2.51-1.18-.82-.31-1.6-.53-2.29-.64-.69-.11-1.27-.11-1.65.02-.38.13-.57.4-.57.8 0 .4.19.9.57 1.4.38.5.95 1 1.65 1.4s1.47.7 2.29 1c.82.3 1.68.6 2.51 1 .83.4 1.62.9 2.4 1.4.78.5 1.47 1 2.11 1.4.64.4 1.17.7 1.65 1 .48.3 1.01.4 1.48.1.48-.3.65-1 .8-2 0 0 .58-3.66.73-5.24.15-1.58.15-2.86 0-4.44-.15-1.58-.73-5.24-.73-5.24-.15-.97-.32-1.64-.8-1.95-.48-.3-1.01-.16-1.48.1z"/>
-              </svg>
-            </div>
-            <div class="wallet-info">
-              <h3>NEAR Wallet</h3>
-              <p>Connect with NEAR web wallet</p>
             </div>
             <div class="wallet-arrow">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
