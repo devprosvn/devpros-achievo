@@ -118,7 +118,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Earn verifiable certificates that employers trust</p>
+                <p class="text-gray-700">Earn verifiable certificates that employers trust</p>
               </div>
               <div class="flex items-start space-x-3">
                 <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mt-1">
@@ -126,7 +126,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Track your learning progress and achievements</p>
+                <p class="text-gray-700">Track your learning progress and achievements</p>
               </div>
               <div class="flex items-start space-x-3">
                 <div class="w-5 h-5 bg-blue-100 rounded-full flex items-center justify-center mt-1">
@@ -134,7 +134,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Collect rewards and unlock new opportunities</p>
+                <p class="text-gray-700">Collect rewards and unlock new opportunities</p>
               </div>
             </div>
             <div class="mt-8">
@@ -154,7 +154,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Issue blockchain-verified certificates instantly</p>
+                <p class="text-gray-700">Issue blockchain-verified certificates instantly</p>
               </div>
               <div class="flex items-start space-x-3">
                 <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-1">
@@ -162,7 +162,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Manage courses and track student progress</p>
+                <p class="text-gray-700">Manage courses and track student progress</p>
               </div>
               <div class="flex items-start space-x-3">
                 <div class="w-5 h-5 bg-green-100 rounded-full flex items-center justify-center mt-1">
@@ -170,7 +170,7 @@
                     <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
                   </svg>
                 </div>
-                <p class="text-gray-900">Build trust with tamper-proof credentials</p>
+                <p class="text-gray-700">Build trust with tamper-proof credentials</p>
               </div>
             </div>
             <div class="mt-8">
