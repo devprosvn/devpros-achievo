@@ -9,10 +9,10 @@
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
     "@near-wallet-selector/core": "^8.10.2",
-    "@near-wallet-selector/meteor-wallet": "^6.0.1",
+    "@near-wallet-selector/meteor-wallet": "^8.10.2",
     "@near-wallet-selector/meteor-wallet-app": "^8.10.2",
     "@near-wallet-selector/modal-ui": "^8.10.2",
-    "@near-wallet-selector/my-near-wallet": "^8.9.10",
+    "@near-wallet-selector/my-near-wallet": "^8.10.2",
     "axios": "^1.9.0",
     "buffer": "^6.0.3",
     "near-api-js": "^6.0.2",

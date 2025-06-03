@@ -26,7 +26,6 @@ export const useNearStore = defineStore('near', () => {
     helperUrl: "https://helper.testnet.near.org",
     explorerUrl: "https://explorer.testnet.near.org",
     walletUrl: "https://wallet.testnet.near.org",
-    keyStore: null,
   }
 
   // Hàm nội bộ thực hiện khởi tạo
@@ -44,14 +43,8 @@ export const useNearStore = defineStore('near', () => {
         network: nearConfig.networkId,
         debug: true,
         modules: [
-          setupMeteorWallet({
-            walletUrl: nearConfig.walletUrl,
-            iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-          }),
-          setupMyNearWallet({
-            walletUrl: nearConfig.walletUrl,
-            iconUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
-          }),
+          setupMeteorWallet(),
+          setupMyNearWallet(),
         ],
       })
       console.log('NEAR wallet selector initialized successfully.')
@@ -137,27 +130,15 @@ export const useNearStore = defineStore('near', () => {
       }
       
       console.log(`Attempting to connect to wallet ID: ${walletIdToConnect}`)
-      
-      // Check if wallet is available before trying to connect
-      const availableWallets = currentSelector.store.getState().modules
-      const targetWallet = availableWallets.find(w => w.id === walletIdToConnect)
-      
-      if (!targetWallet || !targetWallet.metadata?.available) {
-        throw new Error(`${walletIdToConnect} is not available or not installed.`)
-      }
 
       const selectedWalletInstance = await currentSelector.wallet(walletIdToConnect)
 
       if (!selectedWalletInstance) {
-        throw new Error(`Could not get wallet instance for ${walletIdToConnect}. It might not be available, configured, or selected by the user.`)
+        throw new Error(`Could not get wallet instance for ${walletIdToConnect}.`)
       }
-
-      // Add a small delay to ensure wallet is ready
-      await new Promise(resolve => setTimeout(resolve, 100))
 
       await selectedWalletInstance.signIn({
         contractId: 'bernieio.testnet',
-        methodNames: [],
       })
 
     } catch (error) {

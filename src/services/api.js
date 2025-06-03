@@ -173,9 +173,6 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // Export the apiClient for direct access
-export { apiClient }
-
-// Export mock data as well  
-export { mockData }
+export { apiClient, mockData }
 
 export default api
