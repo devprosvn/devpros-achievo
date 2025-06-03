@@ -6,7 +6,6 @@
       <div class="navbar-brand">
         <router-link to="/" class="brand-link">
           <img src="/achievo-logo.png" alt="Achievo" class="brand-logo" />
-          <span class="brand-text">Achievo</span>
         </router-link>
       </div>
 
@@ -19,8 +18,7 @@
           
           <!-- Conditional Navigation based on connection status -->
           <div v-if="!isConnected" class="nav-auth">
-            <router-link to="/login" class="nav-link" @click="closeMenu">Đăng nhập</router-link>
-            <router-link to="/register" class="nav-link btn-register" @click="closeMenu">Đăng ký</router-link>
+            <router-link to="/register" class="nav-link btn-get-started" @click="closeMenu">Get Started Now</router-link>
           </div>
           
           <div v-else class="nav-user">
@@ -146,16 +144,8 @@ onUnmounted(() => {
 }
 
 .brand-logo {
-  height: 40px;
+  height: 50px;
   width: auto;
-  margin-right: 0.75rem;
-}
-
-.brand-text {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .navbar-menu {
@@ -206,15 +196,16 @@ onUnmounted(() => {
   margin-left: 2rem;
 }
 
-.btn-register {
+.btn-get-started {
   background: linear-gradient(135deg, #667eea, #764ba2);
   color: white !important;
-  padding: 0.5rem 1.5rem !important;
+  padding: 0.75rem 2rem !important;
   border-radius: 0.5rem;
+  font-weight: 600;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.btn-register:hover {
+.btn-get-started:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
 }
