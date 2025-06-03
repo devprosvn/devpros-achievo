@@ -6,6 +6,7 @@ import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
 import { setupMeteorWalletApp } from '@near-wallet-selector/meteor-wallet-app'
 import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { setupModal } from '@near-wallet-selector/modal-ui'
+import { providers } from 'near-api-js'
 
 export const useNearStore = defineStore('near', () => {
   const selector = ref(null)
@@ -30,7 +31,12 @@ export const useNearStore = defineStore('near', () => {
         return
       }
       
-      await new Promise(resolve => setTimeout(resolve, 500))
+      if (selector.value) {
+        console.log('NEAR selector already initialized')
+        return
+      }
+      
+      console.log('Initializing NEAR wallet selector...')
       
       selector.value = await setupWalletSelector({
         network: nearConfig.networkId,
@@ -41,6 +47,8 @@ export const useNearStore = defineStore('near', () => {
           setupMyNearWallet()
         ],
       })
+      
+      console.log('NEAR wallet selector initialized successfully')
 
       modal.value = setupModal(selector.value, {
         contractId: 'bernieio.testnet'
@@ -77,7 +85,12 @@ export const useNearStore = defineStore('near', () => {
     try {
       isLoading.value = true
       
+      // Always ensure initialization
+      await initNear()
+      
+      // Wait a bit more for proper initialization
       if (!selector.value) {
+        await new Promise(resolve => setTimeout(resolve, 1000))
         await initNear()
       }
 

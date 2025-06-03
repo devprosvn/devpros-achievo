@@ -216,8 +216,14 @@ const handleWalletConnect = async (walletType) => {
   }
 }
 
-onMounted(() => {
-  nearStore.initNear()
+onMounted(async () => {
+  try {
+    console.log('Home component: Initializing NEAR...')
+    await nearStore.initNear()
+    console.log('Home component: NEAR initialization completed')
+  } catch (error) {
+    console.error('Home component: NEAR initialization failed:', error)
+  }
 })
 </script>
 
