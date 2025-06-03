@@ -1,0 +1,164 @@
+Frontend Functions (Ứng dụng người dùng)
+Lưu ý đặc biệt:
+
+Toàn bộ giao diện phải được giữ nguyên và sao chép từ mẫu đã triển khai tại:
+https://v0-achievo-web-template-g9puo2k1q-devbernies-projects.vercel.app/.
+
+Giao diện cần tích hợp đầy đủ API backend và contract NEAR theo thông tin đã cung cấp.
+
+1. Giao diện học viên
+Đăng ký, cập nhật thông tin cá nhân:
+
+Vai trò:
+Người dùng (học viên) đăng ký hoặc cập nhật thông tin cá nhân.
+
+Workflow:
+
+Form nhập thông tin cá nhân.
+
+Gọi API /api/auth/register (POST) để lưu thông tin.
+
+Giao diện hiển thị trạng thái thành công hoặc lỗi.
+
+Quản lý hồ sơ:
+
+Vai trò:
+Hiển thị thông tin chứng chỉ, phần thưởng, và tiến trình học tập.
+
+Workflow:
+
+Lấy danh sách chứng chỉ từ API /api/certificates (GET).
+
+Lấy phần thưởng từ API /api/rewards (GET).
+
+Hiển thị tiến trình học tập dựa trên dữ liệu từ backend.
+
+Tra cứu/xác thực chứng chỉ:
+
+Vai trò:
+Xác thực tính hợp lệ của chứng chỉ thông qua mã nhận diện.
+
+Workflow:
+
+Form nhập mã chứng chỉ.
+
+Gọi API /api/validation/certificate (POST).
+
+Hiển thị thông tin chứng chỉ hoặc thông báo không hợp lệ.
+
+2. Giao diện tổ chức
+Đăng ký tổ chức:
+
+Vai trò:
+Đăng ký và quản lý thông tin tổ chức.
+
+Workflow:
+
+Form nhập thông tin tổ chức.
+
+Gọi API /api/auth/register-org (POST).
+
+Hiển thị trạng thái phê duyệt từ backend.
+
+Dashboard quản lý:
+
+Vai trò:
+Quản lý khóa học, học viên, và chứng chỉ.
+
+Workflow:
+
+Lấy danh sách khóa học, học viên từ backend API.
+
+Gọi API /api/certificates/issue (POST) để phát hành chứng chỉ.
+
+Sử dụng biểu đồ/tables từ template web để hiển thị dữ liệu.
+
+3. Marketplace
+Mua bán khóa học/chứng chỉ:
+
+Vai trò:
+Marketplace để học viên mua khóa học hoặc chứng chỉ đặc biệt.
+
+Workflow:
+
+Giao diện danh sách khóa học từ API /api/courses (GET).
+
+Gọi API /api/payments/process (POST) khi thực hiện giao dịch.
+
+Hiển thị trạng thái giao dịch từ backend.
+
+Tích hợp ví NEAR:
+
+Vai trò:
+Học viên và tổ chức kết nối ví NEAR để giao dịch.
+
+Workflow:
+
+Hiển thị hai lựa chọn: Meteor Wallet và MyNearWallet.
+
+Gọi near-api-js để kết nối ví, lấy accountId.
+
+Gọi API contract NEAR (dựa trên near-api-js) để thực hiện giao dịch.
+
+4. Thanh toán
+Tích hợp Meteor Wallet và MyNearWallet:
+
+Vai trò:
+Thực hiện thanh toán NEAR qua ví người dùng.
+
+Workflow:
+
+Kết nối ví bằng giao diện tương ứng.
+
+Gọi API /api/payments/process với thông tin giao dịch.
+
+Hiển thị thông báo trạng thái giao dịch.
+
+Hiển thị trạng thái thanh toán:
+
+Vai trò:
+Cung cấp thông tin thời gian thực về giao dịch.
+
+Workflow:
+
+Lấy dữ liệu từ API /api/payments/status (GET).
+
+Hiển thị trạng thái: Đang xử lý, Thành công, hoặc Thất bại.
+
+5. Kết nối với Contract NEAR
+Cấu hình kết nối:
+
+contractName: <contract-id>
+
+networkId: "testnet"
+
+nodeUrl: "https://rpc.testnet.near.org"
+
+walletUrl: "https://wallet.testnet.near.org"
+
+Các method cần thiết:
+
+View methods:
+
+get_certificate: Lấy thông tin chứng chỉ.
+
+get_all_certificates: Lấy danh sách toàn bộ chứng chỉ.
+
+Change methods:
+
+issue_certificate: Phát hành chứng chỉ.
+
+update_certificate: Cập nhật thông tin chứng chỉ.
+
+Checklist cho Frontend Developer
+ Copy toàn bộ giao diện từ https://v0-achievo-web-template-g9puo2k1q-devbernies-projects.vercel.app/.
+
+ Kết nối API backend: URL, endpoints, cấu trúc request/response.
+
+ Tích hợp near-api-js: Wallet, RPC, contract methods.
+
+ Hiển thị dữ liệu từ backend và contract: Dashboard, chứng chỉ, phần thưởng.
+
+ Đảm bảo giao dịch và thông tin thời gian thực hoạt động chính xác.
+
+ API đã deploy: https://achievo-backend-5gw4.onrender.com
