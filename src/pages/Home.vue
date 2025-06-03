@@ -297,3 +297,4 @@ const connectWallet = async (walletType) => {
   max-width: 1200px;
 }
 </style>
+</replit_final_file>
