@@ -1,0 +1,34 @@
+near.js:143 Failed to connect wallet: TypeError: Cannot read properties of undefined (reading 'signer')
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16902:48
+    at Generator.next (<anonymous>)
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16869:67
+    at new Promise (<anonymous>)
+    at __awaiter (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16851:10)
+    at getAccounts (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16896:29)
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16930:32
+    at Generator.next (<anonymous>)
+    at fulfilled (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16854:24)
+connectWallet @ near.js:143
+await in connectWallet
+wrappedAction @ pinia.js?v=3ed9e326:5516
+store.<computed> @ pinia.js?v=3ed9e326:5210
+handleWalletConnect @ Home.vue:215
+callWithErrorHandling @ chunk-4Q6UEXCK.js?v=3ed9e326:2289
+callWithAsyncErrorHandling @ chunk-4Q6UEXCK.js?v=3ed9e326:2296
+emit @ chunk-4Q6UEXCK.js?v=3ed9e326:8589
+(anonymous) @ chunk-4Q6UEXCK.js?v=3ed9e326:10302
+connectWallet @ WalletConnectionModal.vue:94
+_createElementVNode.onClick._cache.<computed>._cache.<computed> @ WalletConnectionModal.vue:18
+callWithErrorHandling @ chunk-4Q6UEXCK.js?v=3ed9e326:2289
+callWithAsyncErrorHandling @ chunk-4Q6UEXCK.js?v=3ed9e326:2296
+invoker @ chunk-4Q6UEXCK.js?v=3ed9e326:11336Understand this error
+Home.vue:218 Component: Wallet connection failed: TypeError: Cannot read properties of undefined (reading 'signer')
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16902:48
+    at Generator.next (<anonymous>)
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16869:67
+    at new Promise (<anonymous>)
+    at __awaiter (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16851:10)
+    at getAccounts (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16896:29)
+    at @near-wallet-selector_meteor-wallet.js?v=3ed9e326:16930:32
+    at Generator.next (<anonymous>)
+    at fulfilled (@near-wallet-selector_meteor-wallet.js?v=3ed9e326:16854:24)
