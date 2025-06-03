@@ -11,6 +11,7 @@
     "@near-wallet-selector/core": "^8.10.2",
     "@near-wallet-selector/meteor-wallet": "^8.10.2",
     "@near-wallet-selector/modal-ui": "^8.10.2",
+    "@near-wallet-selector/my-near-wallet": "^9.0.2",
     "axios": "^1.9.0",
     "buffer": "^6.0.3",
     "near-api-js": "^5.1.1",

@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { setupWalletSelector } from '@near-wallet-selector/core'
 import { setupMeteorWallet } from '@near-wallet-selector/meteor-wallet'
-import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
+// import { setupMyNearWallet } from '@near-wallet-selector/my-near-wallet'
 import { setupModal } from '@near-wallet-selector/modal-ui'
 import { providers } from 'near-api-js'
 import { Buffer } from 'buffer'
@@ -44,7 +44,7 @@ export const useNearStore = defineStore('near', () => {
         debug: true,
         modules: [
           setupMeteorWallet(),
-          setupMyNearWallet(),
+          // setupMyNearWallet(),
         ],
       })
       console.log('NEAR wallet selector initialized successfully.')
