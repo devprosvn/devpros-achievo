@@ -7,6 +7,9 @@ export default defineConfig({
   define: {
     global: 'globalThis',
     'process.env': {},
+    __VUE_OPTIONS_API__: true,
+    __VUE_PROD_DEVTOOLS__: false,
+    __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
   },
   resolve: {
     alias: {
@@ -17,6 +20,9 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['buffer', 'process']
+  },
+  esbuild: {
+    target: 'esnext'
   },
   server: {
     host: '0.0.0.0',
