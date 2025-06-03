@@ -1,7 +1,7 @@
 
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { apiClient } from '../services/api'
+import { api } from '../services/api'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const login = async (credentials) => {
     try {
-      const response = await apiClient.post('/api/auth/login', credentials)
+      const response = await api.login(credentials)
       user.value = response.data.user
       isAuthenticated.value = true
       localStorage.setItem('token', response.data.token)
@@ -22,7 +22,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const register = async (userData) => {
     try {
-      const response = await apiClient.post('/api/auth/register', userData)
+      const response = await api.register(userData)
       return response.data
     } catch (error) {
       throw error
@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const registerOrganization = async (orgData) => {
     try {
-      const response = await apiClient.post('/api/auth/register-org', orgData)
+      const response = await api.registerOrganization(orgData)
       return response.data
     } catch (error) {
       throw error
