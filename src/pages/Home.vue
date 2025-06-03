@@ -5,9 +5,8 @@
       <div class="container mx-auto px-4">
         <div class="flex h-16 items-center justify-between">
           <!-- Logo -->
-          <div class="flex items-center gap-2">
-            <TrophyIcon class="h-8 w-8 text-blue-600" />
-            <span class="text-xl font-bold">Achievo</span>
+          <div class="flex items-center">
+            <span class="text-2xl font-bold text-blue-600 font-aptos-bold-italic">Achievo</span>
           </div>
 
           <!-- Desktop Navigation -->
@@ -86,7 +85,7 @@
           <!-- Feature Card 2 -->
           <div class="flex flex-col items-center gap-4 rounded-lg border p-6 text-center">
             <div class="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-              <TrophyIcon class="h-6 w-6 text-green-600" />
+              <CheckCircleIcon class="h-6 w-6 text-green-600" />
             </div>
             <h3 class="text-xl font-bold">Dynamic NFT Certificates</h3>
             <p class="text-gray-600">
@@ -132,9 +131,8 @@
       <div class="container mx-auto px-4">
         <div class="flex flex-col items-center justify-between gap-6 md:flex-row">
           <!-- Logo -->
-          <div class="flex items-center gap-2">
-            <TrophyIcon class="h-6 w-6 text-blue-600" />
-            <span class="font-bold">Achievo</span>
+          <div class="flex items-center">
+            <span class="text-lg font-bold text-blue-600 font-aptos-bold-italic">Achievo</span>
           </div>
 
           <!-- Links -->
@@ -254,8 +252,7 @@ import {
 import {
   ShieldCheckIcon,
   CheckCircleIcon,
-  ArrowRightIcon,
-  TrophyIcon
+  ArrowRightIcon
 } from '@heroicons/vue/24/outline'
 import { WalletIcon } from '@heroicons/vue/24/solid'
 import { useNearStore } from '../stores/near'
