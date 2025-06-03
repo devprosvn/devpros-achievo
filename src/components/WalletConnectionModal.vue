@@ -88,13 +88,11 @@ defineProps({
   }
 })
 
-defineEmits(['close', 'connect'])
+const emit = defineEmits(['close', 'connect'])
 
 const connectWallet = (walletType) => {
   emit('connect', walletType)
 }
-
-const emit = defineEmits(['close', 'connect'])
 </script>
 
 <style scoped>
