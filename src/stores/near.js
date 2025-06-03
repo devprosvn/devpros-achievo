@@ -20,8 +20,14 @@ export const useNearStore = defineStore('near', () => {
 
   const initNear = async () => {
     try {
+      // Check if we're in browser environment
+      if (typeof window === 'undefined') {
+        console.log('NEAR initialization skipped (not in browser)')
+        return
+      }
+      
       // Add a delay to ensure browser environment is ready
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 500))
       
       const near = await connect(nearConfig)
       wallet.value = new WalletConnection(near, "achievo-app")
