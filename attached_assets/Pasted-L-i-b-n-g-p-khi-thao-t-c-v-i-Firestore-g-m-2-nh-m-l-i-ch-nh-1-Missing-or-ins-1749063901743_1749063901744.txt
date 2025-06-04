@@ -1,0 +1,97 @@
+Lỗi bạn gặp khi thao tác với Firestore gồm **2 nhóm lỗi chính**:
+
+---
+
+## ❌ 1. **`Missing or insufficient permissions`**
+
+### 🔍 Nguyên nhân:
+
+* Firestore Security Rules không cho phép người dùng hiện tại (hoặc server SDK) thực hiện thao tác đó.
+* Ví dụ: người dùng không đăng nhập, hoặc đang dùng `firebase-admin` từ môi trường không có quyền.
+
+### ✅ Cách khắc phục:
+
+#### ✅ Nếu bạn đang dùng **Client SDK (JS trong frontend)**:
+
+1. Đảm bảo người dùng **đăng nhập bằng Firebase Auth** trước khi gọi API.
+2. Xét lại **Firestore Rules**. Ví dụ, nếu bạn chỉ cho phép người dùng có quyền chỉnh sửa:
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Rule cho courses
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+
+    // Rule cho chứng chỉ
+    match /certificates/{certId} {
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+    }
+  }
+}
+```
+
+> 🔒 Bạn cần điều chỉnh rule cho đúng use-case: nếu client cần quyền ghi, phải cấp đủ quyền.
+
+#### ✅ Nếu bạn đang dùng **Admin SDK (Node.js, Firebase Functions)**:
+
+* Đảm bảo bạn dùng đúng `firebase-admin` và đã `initializeApp()` đúng cách:
+
+```ts
+import * as admin from 'firebase-admin';
+admin.initializeApp();
+```
+
+---
+
+## ❌ 2. **`Function updateDoc() called with invalid data. Unsupported field value: undefined`**
+
+### 🔍 Nguyên nhân:
+
+Bạn đang truyền dữ liệu `undefined` vào `updateDoc`, cụ thể là field `category`. Ví dụ:
+
+```ts
+await updateDoc(docRef, {
+  category: course.category, // nếu course.category là undefined → lỗi
+});
+```
+
+### ✅ Cách khắc phục:
+
+* Trước khi gọi `updateDoc()`, kiểm tra dữ liệu:
+
+```ts
+if (course.category !== undefined) {
+  await updateDoc(docRef, { category: course.category });
+}
+```
+
+* Hoặc gộp lại và lọc các field `undefined`:
+
+```ts
+const data = {
+  title: course.title,
+  category: course.category,
+  description: course.description,
+};
+
+// Loại bỏ các field có giá trị undefined
+const validData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+
+await updateDoc(docRef, validData);
+```
+
+---
+
+## ✅ Tóm tắt fix nhanh:
+
+| Lỗi                                   | Cách khắc phục nhanh                                      |
+| ------------------------------------- | --------------------------------------------------------- |
+| `Missing or insufficient permissions` | ✅ Cập nhật Firestore Rules phù hợp và xác thực người dùng |
+| `Unsupported field value: undefined`  | ✅ Loại bỏ hoặc kiểm tra field trước khi gọi `updateDoc`   |
+
+Nếu bạn cần mình kiểm tra giúp đoạn rule cụ thể hoặc code `updateDoc()`, bạn có thể paste vào đây.
