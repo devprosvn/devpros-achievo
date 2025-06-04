@@ -1,0 +1,87 @@
+Dựa trên mã `firebaseService` và `api.js` bạn cung cấp, cùng với log lỗi `Firestore 400 Bad Request` và thời gian tạo khóa học kéo dài bất thường, **nguyên nhân rất có thể đến từ việc sai quyền truy cập Firestore hoặc thiếu cấu hình mạng/Firestore Rules.** Cụ thể:
+
+---
+
+### ✅ **1. Nguyên nhân chính và cách khắc phục**
+
+#### 🔥 **Nguyên nhân 1: Thiếu quyền Firestore (insufficient permissions)**
+
+Bạn có log:
+
+```
+Có lỗi khi lưu khóa học: Missing or insufficient permissions.
+```
+
+→ Cho thấy Firestore đang từ chối ghi dữ liệu.
+
+**Cách khắc phục**:
+
+1. Vào [Firestore Rules](https://console.firebase.google.com/project/achievo-certificate/firestore/rules).
+2. Thay thế rules mặc định bằng:
+
+   ```js
+   rules_version = '2';
+   service cloud.firestore {
+     match /databases/{database}/documents {
+       match /{document=**} {
+         allow read, write: if true; // ⚠️ Chỉ dùng cho test, KHÔNG dùng production
+       }
+     }
+   }
+   ```
+3. Bấm **Publish**.
+
+➡ Sau đó thử lại thao tác tạo khóa học, thời gian tạo sẽ giảm đáng kể (thường < 3 giây).
+
+---
+
+### ✅ **2. Nguyên nhân 2: Dữ liệu `category` bị `undefined`**
+
+Bạn có log:
+
+```
+Function updateDoc() called with invalid data. Unsupported field value: undefined (found in field category)
+```
+
+→ `courseData.category` đang bị `undefined` khi gọi `updateCourse()`.
+
+**Cách fix an toàn**:
+
+Trong `firebaseService.updateCourse()` → thêm validate:
+
+```js
+if (cleanData.category === undefined) {
+  delete cleanData.category; // Bỏ không update nếu undefined
+}
+```
+
+---
+
+### ✅ **3. Gợi ý tăng tốc độ / ổn định khi dùng Firestore**
+
+1. **Tránh truyền object chưa validate kỹ:** dùng `cleanObject()` như đã định nghĩa rất đúng hướng.
+2. **Dùng `setDoc(docRef, data, { merge: true })` thay vì `updateDoc()`** nếu cần update toàn bộ hoặc chấp nhận overwrite field cũ.
+3. **Thêm loading state rõ ràng** trên UI để tránh người dùng nghĩ “đang treo”.
+
+---
+
+### ✅ **4. Kiểm tra thêm**
+
+* Đảm bảo Firestore đã **Enable trong Firebase Console**.
+* Kiểm tra network tab xem request `POST` hoặc `PATCH` đến `https://firestore.googleapis.com/v1/projects/...` có bị **403, 400, hay timeout** không.
+
+---
+
+### ✅ **Tóm tắt fix nhanh cho bạn:**
+
+| Vấn đề                                | Cách khắc phục nhanh                                 |
+| ------------------------------------- | ---------------------------------------------------- |
+| `Missing or insufficient permissions` | Thay Firestore Rules: `allow read, write: if true`   |
+| `category: undefined`                 | Xoá `undefined` khỏi dữ liệu trước khi `updateDoc()` |
+| Thời gian ghi lâu                     | Do lỗi quyền, retry vô tận → fix rule xong sẽ mượt   |
+| Lỗi `400 Bad Request`                 | Thường do dữ liệu `undefined/null` hoặc sai cấu hình |
+| Firestore không phản hồi              | Kiểm tra `network`, `rules`, hoặc `billing (Spark)`  |
+
+---
+
+Nếu bạn cần mình viết luôn đoạn `fix code` hoặc `Firestore.rules` cụ thể phù hợp Achievo, chỉ cần nói nhé.
