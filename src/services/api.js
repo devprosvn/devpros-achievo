@@ -337,39 +337,15 @@ api.processPayment = (paymentData) => createMockApiCall({ success: true, transac
 // Firebase-backed course operations
 api.createCourse = async (courseData) => {
   try {
-    const newCourse = {
-      title: courseData.title || 'Untitled Course',
-      description: courseData.description || 'No description',
-      category: courseData.category || 'general',
-      instructor: courseData.instructor || 'Organization',
-      duration: courseData.duration || '4 weeks',
-      level: courseData.level || 'Beginner',
-      priceNEAR: courseData.price ? courseData.price.toString() : '0',
-      priceUSD: courseData.price ? (courseData.price * 3).toString() : '0',
-      image: courseData.image || '/vue-js-logo.png',
-      skills: Array.isArray(courseData.skills) ? courseData.skills : ['learning'],
-      organization_wallet: courseData.organization_wallet || 'bernieio.testnet'
-    }
+    console.log('API: Creating course with data:', courseData)
     
-    // Ensure no undefined values
-    const filteredData = {}
-    for (const [key, value] of Object.entries(newCourse)) {
-      if (value !== undefined && value !== null) {
-        filteredData[key] = value
-      }
-    }
+    // Let Firebase service handle all the data cleaning and validation
+    const result = await firebaseService.createCourse(courseData)
     
-    console.log('Creating course with data:', filteredData)
-    const result = await firebaseService.createCourse(filteredData)
-    
-    // Ensure the result has an ID
-    if (result && !result.id && result.docId) {
-      result.id = result.docId
-    }
-    
+    console.log('API: Course created successfully:', result)
     return { data: result }
   } catch (error) {
-    console.error('Failed to create course:', error)
+    console.error('API: Failed to create course:', error)
     throw error
   }
 }
@@ -377,32 +353,15 @@ api.createCourse = async (courseData) => {
 // Firebase update course
 api.updateCourse = async (courseId, courseData) => {
   try {
-    const updateData = {
-      title: courseData.title || 'Untitled Course',
-      description: courseData.description || 'No description',
-      priceNEAR: courseData.price ? courseData.price.toString() : '0',
-      priceUSD: courseData.price ? (courseData.price * 3).toString() : '0',
-      category: courseData.category || 'general',
-      instructor: courseData.instructor || 'Organization',
-      duration: courseData.duration || '4 weeks',
-      level: courseData.level || 'Beginner',
-      image: courseData.image || '/vue-js-logo.png',
-      skills: Array.isArray(courseData.skills) ? courseData.skills : ['learning']
-    }
+    console.log('API: Updating course with data:', courseData)
     
-    // Ensure no undefined values
-    const filteredData = {}
-    for (const [key, value] of Object.entries(updateData)) {
-      if (value !== undefined && value !== null) {
-        filteredData[key] = value
-      }
-    }
+    // Let Firebase service handle all the data cleaning and validation
+    const result = await firebaseService.updateCourse(courseId, courseData)
     
-    console.log('Updating course with data:', filteredData)
-    const result = await firebaseService.updateCourse(courseId, filteredData)
+    console.log('API: Course updated successfully:', result)
     return { data: result }
   } catch (error) {
-    console.error('Failed to update course:', error)
+    console.error('API: Failed to update course:', error)
     throw error
   }
 }
@@ -410,49 +369,38 @@ api.updateCourse = async (courseId, courseData) => {
 // Firebase-backed issue certificate with IPFS minting
 api.issueCertificate = async (certificateData) => {
   try {
-    const newCertificate = {
-      certificate_id: `CERT_${Date.now()}`,
-      title: certificateData.title || 'Certificate of Completion',
-      recipientName: certificateData.studentEmail || 'Student',
-      recipientWallet: certificateData.recipientWallet || 'student.testnet',
-      issuerName: certificateData.issuerName || 'Organization',
-      issuerWallet: certificateData.issuerWallet || 'bernieio.testnet',
-      courseId: certificateData.courseId || 'COURSE_001',
-      issueDate: certificateData.issuedDate || new Date().toISOString(),
-      completionDate: new Date().toISOString(),
-      grade: certificateData.grade || 'A',
-      skills: Array.isArray(certificateData.skills) ? certificateData.skills : ['learning'],
-      status: 'verified',
-      blockchainHash: `QmHash${Date.now()}`
-    }
-
-    // Mint to IPFS using Pinata
+    console.log('API: Issuing certificate with data:', certificateData)
+    
+    // Try to mint to IPFS first
+    let ipfsData = {}
     try {
-      const ipfsResult = await PinataService.mintCertificateToIPFS(newCertificate)
+      const ipfsResult = await PinataService.mintCertificateToIPFS(certificateData)
       if (ipfsResult.success) {
-        newCertificate.ipfsHash = ipfsResult.metadataHash
-        newCertificate.ipfsUrl = ipfsResult.metadataUrl
-        newCertificate.fileHash = ipfsResult.fileHash
-        newCertificate.fileUrl = ipfsResult.fileUrl
-        newCertificate.blockchainHash = ipfsResult.metadataHash
+        ipfsData = {
+          ipfsHash: ipfsResult.metadataHash,
+          ipfsUrl: ipfsResult.metadataUrl,
+          fileHash: ipfsResult.fileHash,
+          fileUrl: ipfsResult.fileUrl,
+          blockchainHash: ipfsResult.metadataHash
+        }
       }
-    } catch (error) {
-      console.error('IPFS minting failed:', error)
+    } catch (ipfsError) {
+      console.warn('IPFS minting failed:', ipfsError)
     }
-
-    // Ensure no undefined values
-    const filteredCertificate = {}
-    for (const [key, value] of Object.entries(newCertificate)) {
-      if (value !== undefined && value !== null) {
-        filteredCertificate[key] = value
-      }
+    
+    // Combine original data with IPFS data
+    const fullCertificateData = {
+      ...certificateData,
+      ...ipfsData
     }
-
-    console.log('Creating certificate with data:', filteredCertificate)
-    const result = await firebaseService.createCertificate(filteredCertificate)
+    
+    // Let Firebase service handle all the data cleaning and validation
+    const result = await firebaseService.createCertificate(fullCertificateData)
+    
+    console.log('API: Certificate issued successfully:', result)
     return { data: result }
   } catch (error) {
-    console.error('Failed to issue certificate:', error)
+    console.error('API: Failed to issue certificate:', error)
     throw error
   }
 }
