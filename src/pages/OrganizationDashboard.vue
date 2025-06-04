@@ -234,8 +234,18 @@ const viewStudents = (course) => {
 }
 
 const viewCertificate = (certificate) => {
-  // Implementation for viewing certificate details
-  console.log('View certificate:', certificate)
+  // Show certificate details in an alert for now (can be improved with a modal later)
+  const details = `
+Certificate Details:
+- ID: ${certificate.id}
+- Title: ${certificate.title}
+- Student: ${certificate.recipientName || certificate.studentName}
+- Course ID: ${certificate.courseId}
+- Issue Date: ${formatDate(certificate.issueDate || certificate.issuedDate)}
+- Status: ${certificate.status}
+- Blockchain Hash: ${certificate.blockchainHash || 'N/A'}
+  `
+  alert(details)
 }
 
 const revokeCertificate = async (certificate) => {
