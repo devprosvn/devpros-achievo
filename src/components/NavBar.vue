@@ -1,4 +1,3 @@
-
 <template>
   <nav class="navbar">
     <div class="navbar-container">
@@ -15,12 +14,15 @@
           <router-link to="/" class="nav-link" @click="closeMenu">Trang chủ</router-link>
           <router-link to="/marketplace" class="nav-link" @click="closeMenu">Khóa học</router-link>
           <router-link to="/certificate-validation" class="nav-link" @click="closeMenu">Xác thực chứng chỉ</router-link>
-          
+
           <!-- Conditional Navigation based on connection status -->
           <div v-if="!isConnected" class="nav-auth">
+            <button @click="handleConnectWallet" class="nav-link btn-wallet" :disabled="nearStore.isLoading">
+              {{ nearStore.isLoading ? 'Đang kết nối...' : 'Connect Wallet' }}
+            </button>
             <router-link to="/register" class="nav-link btn-get-started" @click="closeMenu">Get Started Now</router-link>
           </div>
-          
+
           <div v-else class="nav-user">
             <div class="dropdown" @click="toggleDropdown" ref="dropdown">
               <button class="dropdown-toggle">
@@ -55,9 +57,13 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useNearStore } from '../stores/near'
+import { useAuthStore } from '../stores/auth'
 
+const router = useRouter()
 const nearStore = useNearStore()
+const authStore = useAuthStore()
 
 const isMenuOpen = ref(false)
 const isDropdownOpen = ref(false)
@@ -89,6 +95,25 @@ const handleDisconnect = async () => {
     closeDropdown()
   } catch (error) {
     console.error('Disconnect failed:', error)
+  }
+}
+
+const handleConnectWallet = async () => {
+  try {
+    await nearStore.connectWallet('meteor')
+    if (nearStore.isConnected) {
+      const userType = authStore.getUserTypeFromWallet(nearStore.accountId)
+      authStore.userType = userType
+
+      // Route based on user type
+      if (userType === 'admin' || userType === 'superuser' || userType === 'organization') {
+        router.push('/organization-dashboard')
+      } else {
+        router.push('/student-dashboard')
+      }
+    }
+  } catch (error) {
+    alert('Kết nối ví thất bại: ' + error.message)
   }
 }
 
@@ -360,5 +385,33 @@ onUnmounted(() => {
 
 .navbar-toggle.is-active .toggle-line:nth-child(3) {
   transform: rotate(45deg) translate(-5px, -6px);
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5a6fd8;
+}
+
+.btn-wallet {
+  background: #00c6a7;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem !important;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-wallet:hover {
+  background: #00a88f;
+}
+
+.btn-wallet:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 </style>

@@ -1,4 +1,3 @@
-
 <template>
   <div class="organization-dashboard">
     <header class="dashboard-header">
@@ -170,7 +169,7 @@ const loadData = async () => {
       api.getCourses(),
       api.getCertificates()
     ])
-    
+
     courses.value = coursesResponse.data
     certificates.value = certificatesResponse.data
     certificatesIssued.value = certificates.value.length
@@ -198,14 +197,14 @@ const issueCertificate = async () => {
       organizationId: authStore.user?.id,
       issuedDate: new Date().toISOString()
     }
-    
+
     await api.issueCertificate(certificateData)
-    
+
     // Also issue on NEAR blockchain
     if (nearStore.isConnected) {
       await nearStore.issueCertificate(certificateData)
     }
-    
+
     showIssueCertificate.value = false
     newCertificate.value = { studentEmail: '', title: '', courseId: '' }
     loadData()
@@ -241,6 +240,21 @@ const revokeCertificate = async (certificate) => {
     } catch (error) {
       console.error('Failed to revoke certificate:', error)
     }
+  }
+}
+
+const connectMeteorWallet = async () => {
+  try {
+    await nearStore.connectWallet('meteor')
+    if (nearStore.isConnected) {
+      console.log('Meteor Wallet connected:', nearStore.accountId)
+      // Auto login with wallet
+      const userType = authStore.getUserTypeFromWallet(nearStore.accountId)
+      authStore.userType = userType
+    }
+  } catch (error) {
+    console.error('Failed to connect Meteor Wallet:', error)
+    alert('Kết nối Meteor Wallet thất bại: ' + error.message)
   }
 }
 

@@ -1,4 +1,3 @@
-
 <template>
   <div class="dashboard">
     <nav class="sidebar">
@@ -22,7 +21,9 @@
         </div>
         <div v-else class="disconnected">
           <p>Wallet not connected</p>
-          <button @click="connectWallet" class="btn btn-sm">Connect Wallet</button>
+          <button @click="connectMeteorWallet" class="btn btn-sm" :disabled="nearStore.isLoading">
+            {{ nearStore.isLoading ? 'Connecting...' : 'Connect Wallet' }}
+          </button>
         </div>
       </div>
     </nav>
@@ -53,7 +54,7 @@
             <p>Learning Progress</p>
           </div>
         </div>
-        
+
         <div class="recent-activity">
           <h2>Recent Activity</h2>
           <div class="activity-list">
@@ -214,11 +215,18 @@ const loadRecentActivities = () => {
   ]
 }
 
-const connectWallet = async () => {
+const connectMeteorWallet = async () => {
   try {
-    await nearStore.connectWallet()
+    await nearStore.connectWallet('meteor')
+    if (nearStore.isConnected) {
+      console.log('Meteor Wallet connected:', nearStore.accountId)
+      // Auto login with wallet
+      const userType = authStore.getUserTypeFromWallet(nearStore.accountId)
+      authStore.userType = userType
+    }
   } catch (error) {
-    alert('Failed to connect wallet: ' + error.message)
+    console.error('Failed to connect Meteor Wallet:', error)
+    alert('Kết nối Meteor Wallet thất bại: ' + error.message)
   }
 }
 
