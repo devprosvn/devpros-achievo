@@ -335,24 +335,28 @@ api.processPayment = (paymentData) => createMockApiCall({ success: true, transac
 api.createCourse = async (courseData) => {
   try {
     const newCourse = {
-      title: courseData.title || '',
-      description: courseData.description || '',
+      title: courseData.title || 'Untitled Course',
+      description: courseData.description || 'No description',
       category: courseData.category || 'general',
       instructor: courseData.instructor || 'Organization',
       duration: courseData.duration || '4 weeks',
       level: courseData.level || 'Beginner',
-      priceNEAR: courseData.price?.toString() || '0',
-      priceUSD: (courseData.price * 3)?.toString() || '0',
+      priceNEAR: courseData.price ? courseData.price.toString() : '0',
+      priceUSD: courseData.price ? (courseData.price * 3).toString() : '0',
       image: courseData.image || '/vue-js-logo.png',
-      skills: courseData.skills || ['learning'],
+      skills: Array.isArray(courseData.skills) ? courseData.skills : ['learning'],
       organization_wallet: courseData.organization_wallet || 'bernieio.testnet'
     }
     
-    // Filter out undefined values
-    const filteredData = Object.fromEntries(
-      Object.entries(newCourse).filter(([_, value]) => value !== undefined)
-    )
+    // Ensure no undefined values
+    const filteredData = {}
+    for (const [key, value] of Object.entries(newCourse)) {
+      if (value !== undefined && value !== null) {
+        filteredData[key] = value
+      }
+    }
     
+    console.log('Creating course with data:', filteredData)
     const result = await firebaseService.createCourse(filteredData)
     return { data: result }
   } catch (error) {
@@ -365,23 +369,27 @@ api.createCourse = async (courseData) => {
 api.updateCourse = async (courseId, courseData) => {
   try {
     const updateData = {
-      title: courseData.title || '',
-      description: courseData.description || '',
-      priceNEAR: courseData.price?.toString() || '0',
-      priceUSD: (courseData.price * 3)?.toString() || '0',
+      title: courseData.title || 'Untitled Course',
+      description: courseData.description || 'No description',
+      priceNEAR: courseData.price ? courseData.price.toString() : '0',
+      priceUSD: courseData.price ? (courseData.price * 3).toString() : '0',
       category: courseData.category || 'general',
       instructor: courseData.instructor || 'Organization',
       duration: courseData.duration || '4 weeks',
       level: courseData.level || 'Beginner',
       image: courseData.image || '/vue-js-logo.png',
-      skills: courseData.skills || ['learning']
+      skills: Array.isArray(courseData.skills) ? courseData.skills : ['learning']
     }
     
-    // Filter out undefined values
-    const filteredData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined)
-    )
+    // Ensure no undefined values
+    const filteredData = {}
+    for (const [key, value] of Object.entries(updateData)) {
+      if (value !== undefined && value !== null) {
+        filteredData[key] = value
+      }
+    }
     
+    console.log('Updating course with data:', filteredData)
     const result = await firebaseService.updateCourse(courseId, filteredData)
     return { data: result }
   } catch (error) {
@@ -395,16 +403,16 @@ api.issueCertificate = async (certificateData) => {
   try {
     const newCertificate = {
       certificate_id: `CERT_${Date.now()}`,
-      title: certificateData.title || 'Certificate',
+      title: certificateData.title || 'Certificate of Completion',
       recipientName: certificateData.studentEmail || 'Student',
-      recipientWallet: 'student.testnet',
+      recipientWallet: certificateData.recipientWallet || 'student.testnet',
       issuerName: certificateData.issuerName || 'Organization',
       issuerWallet: certificateData.issuerWallet || 'bernieio.testnet',
-      courseId: certificateData.courseId || '',
+      courseId: certificateData.courseId || 'COURSE_001',
       issueDate: certificateData.issuedDate || new Date().toISOString(),
       completionDate: new Date().toISOString(),
-      grade: 'A',
-      skills: ['learning'],
+      grade: certificateData.grade || 'A',
+      skills: Array.isArray(certificateData.skills) ? certificateData.skills : ['learning'],
       status: 'verified',
       blockchainHash: `QmHash${Date.now()}`
     }
@@ -423,7 +431,16 @@ api.issueCertificate = async (certificateData) => {
       console.error('IPFS minting failed:', error)
     }
 
-    const result = await firebaseService.createCertificate(newCertificate)
+    // Ensure no undefined values
+    const filteredCertificate = {}
+    for (const [key, value] of Object.entries(newCertificate)) {
+      if (value !== undefined && value !== null) {
+        filteredCertificate[key] = value
+      }
+    }
+
+    console.log('Creating certificate with data:', filteredCertificate)
+    const result = await firebaseService.createCertificate(filteredCertificate)
     return { data: result }
   } catch (error) {
     console.error('Failed to issue certificate:', error)

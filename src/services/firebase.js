@@ -32,15 +32,18 @@ export const firebaseService = {
   // Courses operations
   async createCourse(courseData) {
     try {
+      console.log('Firebase: Creating course with data:', courseData)
       const coursesRef = collection(db, 'courses')
       const docRef = await addDoc(coursesRef, {
         ...courseData,
         createdAt: new Date(),
         updatedAt: new Date()
       })
+      console.log('Firebase: Course created successfully with ID:', docRef.id)
       return { id: docRef.id, ...courseData }
     } catch (error) {
-      console.error('Error creating course:', error)
+      console.error('Firebase: Error creating course:', error)
+      console.error('Firebase: Error details:', error.message)
       throw error
     }
   },
@@ -89,15 +92,18 @@ export const firebaseService = {
   // Certificates operations
   async createCertificate(certificateData) {
     try {
+      console.log('Firebase: Creating certificate with data:', certificateData)
       const certificatesRef = collection(db, 'certificates')
       const docRef = await addDoc(certificatesRef, {
         ...certificateData,
         createdAt: new Date(),
         updatedAt: new Date()
       })
+      console.log('Firebase: Certificate created successfully with ID:', docRef.id)
       return { id: docRef.id, ...certificateData }
     } catch (error) {
-      console.error('Error creating certificate:', error)
+      console.error('Firebase: Error creating certificate:', error)
+      console.error('Firebase: Error details:', error.message)
       throw error
     }
   },
