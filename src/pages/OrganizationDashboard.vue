@@ -181,12 +181,15 @@ const loadData = async () => {
 
 const addCourse = async () => {
   try {
-    await api.createCourse(newCourse.value)
+    const response = await api.createCourse(newCourse.value)
+    console.log('Course created successfully:', response.data)
     showAddCourse.value = false
     newCourse.value = { title: '', description: '', price: 0 }
-    loadData()
+    await loadData()
+    alert('Khóa học đã được tạo thành công!')
   } catch (error) {
     console.error('Failed to add course:', error)
+    alert('Có lỗi khi tạo khóa học: ' + error.message)
   }
 }
 
@@ -198,7 +201,8 @@ const issueCertificate = async () => {
       issuedDate: new Date().toISOString()
     }
 
-    await api.issueCertificate(certificateData)
+    const response = await api.issueCertificate(certificateData)
+    console.log('Certificate issued successfully:', response.data)
 
     // Also issue on NEAR blockchain
     if (nearStore.isConnected) {
@@ -207,9 +211,11 @@ const issueCertificate = async () => {
 
     showIssueCertificate.value = false
     newCertificate.value = { studentEmail: '', title: '', courseId: '' }
-    loadData()
+    await loadData()
+    alert('Chứng chỉ đã được cấp thành công!')
   } catch (error) {
     console.error('Failed to issue certificate:', error)
+    alert('Có lỗi khi cấp chứng chỉ: ' + error.message)
   }
 }
 
