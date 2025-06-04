@@ -28,6 +28,14 @@ export const useNearStore = defineStore('near', () => {
     walletUrl: "https://wallet.testnet.near.org",
   }
 
+  // Sample accounts for testing
+  const sampleAccounts = {
+    admin: "achievo.testnet",
+    superuser: "achievo-admin.testnet", 
+    student: "achievo-student.testnet",
+    organization: "achievo-org.testnet"
+  }
+
   // Hàm nội bộ thực hiện khởi tạo
   const _doInitNear = async () => {
     if (typeof window === 'undefined') {

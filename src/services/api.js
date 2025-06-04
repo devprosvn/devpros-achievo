@@ -30,59 +30,40 @@ apiClient.interceptors.response.use(
   }
 )
 
-// Sample data for testing NEAR Certificate System
+// Mock data for development with NEAR testnet accounts
 const mockData = {
-  // Sample users for Meteor Wallet authentication
-  users: {
+  // Sample accounts for testing
+  accounts: {
     admin: {
       wallet_address: "achievo.testnet",
       name: "Achievo Admin",
       email: "admin@achievo.io",
       role: "admin",
-      type: "admin",
-      permissions: ["manage_users", "verify_organizations", "system_config"],
-      created_at: new Date("2024-01-01"),
-      status: "active"
+      type: "admin"
     },
     superuser: {
-      wallet_address: "achievo-admin.testnet", 
-      name: "Super Administrator",
+      wallet_address: "achievo-admin.testnet",
+      name: "Super Administrator", 
       email: "superuser@achievo.io",
       role: "superuser",
-      type: "superuser",
-      permissions: ["all_permissions"],
-      created_at: new Date("2024-01-01"),
-      status: "active"
+      type: "superuser"
     },
     student: {
       wallet_address: "achievo-student.testnet",
       name: "John Student",
-      dob: "1995-05-15",
       email: "student@achievo.io",
       type: "individual",
-      role: "learner",
-      certificates_earned: [],
-      rewards_received: [],
-      created_at: new Date("2024-01-15"),
-      status: "active"
+      role: "learner"
     },
     organization: {
       wallet_address: "achievo-org.testnet",
       name: "Achievo Education Institute",
-      contact_info: {
-        email: "contact@achievo-edu.org",
-        phone: "+1-555-0123",
-        website: "https://achievo-edu.org",
-        address: "123 Education St, Learning City, LC 12345"
-      },
+      email: "contact@achievo-edu.org",
       type: "organization",
-      verified: true,
-      certificates_issued: [],
-      created_at: new Date("2024-01-01"),
-      verified_at: new Date("2024-01-02"),
-      status: "verified"
+      verified: true
     }
   },
+  
   courses: [
     {
       id: 'BLOCKCHAIN_101',
@@ -90,13 +71,13 @@ const mockData = {
       description: 'Learn the fundamentals of blockchain technology',
       category: 'blockchain',
       instructor: 'Achievo Education Institute',
-      instructorWallet: 'achievo-org.testnet',
       duration: '8 weeks',
       level: 'Beginner',
       priceNEAR: '5',
       priceUSD: '15',
+      image: '/vue-js-logo.png',
       skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
-      image: '/vue-js-logo.png'
+      organization_wallet: 'achievo-org.testnet'
     },
     {
       id: 'WEB3_DEV',
@@ -104,13 +85,13 @@ const mockData = {
       description: 'Build decentralized applications on NEAR Protocol',
       category: 'development',
       instructor: 'Achievo Education Institute',
-      instructorWallet: 'achievo-org.testnet',
       duration: '12 weeks',
       level: 'Intermediate',
-      priceNEAR: '8',
-      priceUSD: '24',
+      priceNEAR: '10',
+      priceUSD: '30',
+      image: '/ui-ux-design-banner.png',
       skills: ['web3', 'smart_contracts', 'dapp_development', 'near_protocol'],
-      image: '/ui-ux-design-banner.png'
+      organization_wallet: 'achievo-org.testnet'
     },
     {
       id: 'DEFI_BASICS',
@@ -118,15 +99,16 @@ const mockData = {
       description: 'Understanding Decentralized Finance protocols',
       category: 'finance',
       instructor: 'Achievo Education Institute',
-      instructorWallet: 'achievo-org.testnet',
       duration: '6 weeks',
       level: 'Beginner',
-      priceNEAR: '6',
-      priceUSD: '18',
+      priceNEAR: '7',
+      priceUSD: '21',
+      image: '/digital-marketing-banner.png',
       skills: ['defi', 'liquidity_pools', 'yield_farming', 'tokenomics'],
-      image: '/digital-marketing-banner.png'
+      organization_wallet: 'achievo-org.testnet'
     }
   ],
+  
   certificates: [
     {
       id: 'CERT_001',
@@ -141,47 +123,24 @@ const mockData = {
       completionDate: '2024-02-15',
       grade: 'A',
       skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
-      ipfs_hash: 'QmSampleHash123456789',
-      status: 'active'
+      status: 'verified',
+      blockchainHash: 'QmSampleHash123456789'
     }
   ],
+  
   rewards: [
     {
       id: 'REWARD_001',
       reward_id: 'REWARD_001',
       title: 'Completion Bonus',
       description: 'Completion bonus for Blockchain 101 course',
-      learner_wallet: 'achievo-student.testnet',
-      certificate_id: 'CERT_001',
-      reward_type: 'completion_bonus',
+      recipientWallet: 'achievo-student.testnet',
+      certificateId: 'CERT_001',
+      rewardType: 'completion_bonus',
       amount: '10',
       currency: 'NEAR',
-      points: 100,
-      granted_at: new Date('2024-02-16'),
+      grantedAt: '2024-02-16',
       status: 'granted'
-    }
-  ],
-  // Meteor Wallet configuration for testnet
-  meteorWalletAccounts: [
-    {
-      wallet_address: "achievo.testnet",
-      account_type: "admin",
-      display_name: "Achievo Admin"
-    },
-    {
-      wallet_address: "achievo-admin.testnet", 
-      account_type: "superuser",
-      display_name: "Super Administrator"
-    },
-    {
-      wallet_address: "achievo-student.testnet",
-      account_type: "student", 
-      display_name: "John Student"
-    },
-    {
-      wallet_address: "achievo-org.testnet",
-      account_type: "organization",
-      display_name: "Achievo Education Institute"
     }
   ]
 }
@@ -199,15 +158,9 @@ export const api = {
   // Auth endpoints
   register: (userData) => apiClient.post('/api/auth/register', userData),
   registerOrganization: (orgData) => apiClient.post('/api/auth/register-org', orgData),
-  registerIndividual: (userData) => apiClient.post('/api/auth/register-individual', userData),
   login: (credentials) => apiClient.post('/api/auth/login', credentials),
-  loginWithWallet: (walletData) => apiClient.post('/api/auth/wallet-login', walletData),
   logout: () => apiClient.post('/api/auth/logout'),
   refreshToken: () => apiClient.post('/api/auth/refresh'),
-  
-  // NEAR wallet specific
-  verifyWalletConnection: (walletAddress) => apiClient.post('/api/auth/verify-wallet', { wallet_address: walletAddress }),
-  getUserByWallet: (walletAddress) => apiClient.get(`/api/auth/user/${walletAddress}`),
 
   // User profile endpoints
   getProfile: () => apiClient.get('/api/profile'),
@@ -272,32 +225,6 @@ if (process.env.NODE_ENV === 'development') {
   api.getCertificates = () => createMockApiCall(mockData.certificates)
   api.getRewards = () => createMockApiCall(mockData.rewards)
   api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
-  
-  // Mock wallet authentication
-  api.loginWithWallet = (walletData) => {
-    const user = Object.values(mockData.users).find(u => u.wallet_address === walletData.wallet_address)
-    if (user) {
-      return createMockApiCall({ 
-        success: true, 
-        user, 
-        token: 'mock_wallet_token_' + walletData.wallet_address.replace('.', '_')
-      })
-    }
-    return Promise.reject(new Error('Wallet not found in system'))
-  }
-  
-  api.verifyWalletConnection = (walletAddress) => {
-    const user = Object.values(mockData.users).find(u => u.wallet_address === walletAddress)
-    return createMockApiCall({ verified: !!user, user })
-  }
-  
-  api.getUserByWallet = (walletAddress) => {
-    const user = Object.values(mockData.users).find(u => u.wallet_address === walletAddress)
-    if (user) {
-      return createMockApiCall(user)
-    }
-    return Promise.reject(new Error('User not found'))
-  }
 }
 
 // Export the apiClient for direct access
