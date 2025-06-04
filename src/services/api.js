@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:3000'
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -30,62 +30,158 @@ apiClient.interceptors.response.use(
   }
 )
 
-// Mock data for development
+// Sample data for testing NEAR Certificate System
 const mockData = {
+  // Sample users for Meteor Wallet authentication
+  users: {
+    admin: {
+      wallet_address: "achievo.testnet",
+      name: "Achievo Admin",
+      email: "admin@achievo.io",
+      role: "admin",
+      type: "admin",
+      permissions: ["manage_users", "verify_organizations", "system_config"],
+      created_at: new Date("2024-01-01"),
+      status: "active"
+    },
+    superuser: {
+      wallet_address: "achievo-admin.testnet", 
+      name: "Super Administrator",
+      email: "superuser@achievo.io",
+      role: "superuser",
+      type: "superuser",
+      permissions: ["all_permissions"],
+      created_at: new Date("2024-01-01"),
+      status: "active"
+    },
+    student: {
+      wallet_address: "achievo-student.testnet",
+      name: "John Student",
+      dob: "1995-05-15",
+      email: "student@achievo.io",
+      type: "individual",
+      role: "learner",
+      certificates_earned: [],
+      rewards_received: [],
+      created_at: new Date("2024-01-15"),
+      status: "active"
+    },
+    organization: {
+      wallet_address: "achievo-org.testnet",
+      name: "Achievo Education Institute",
+      contact_info: {
+        email: "contact@achievo-edu.org",
+        phone: "+1-555-0123",
+        website: "https://achievo-edu.org",
+        address: "123 Education St, Learning City, LC 12345"
+      },
+      type: "organization",
+      verified: true,
+      certificates_issued: [],
+      created_at: new Date("2024-01-01"),
+      verified_at: new Date("2024-01-02"),
+      status: "verified"
+    }
+  },
   courses: [
     {
-      id: 1,
-      title: 'Vue.js Complete Course',
-      description: 'Learn Vue.js from beginner to advanced level',
-      category: 'programming',
-      instructor: 'John Doe',
-      duration: '40 hours',
+      id: 'BLOCKCHAIN_101',
+      title: 'Introduction to Blockchain',
+      description: 'Learn the fundamentals of blockchain technology',
+      category: 'blockchain',
+      instructor: 'Achievo Education Institute',
+      instructorWallet: 'achievo-org.testnet',
+      duration: '8 weeks',
       level: 'Beginner',
       priceNEAR: '5',
       priceUSD: '15',
+      skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
       image: '/vue-js-logo.png'
     },
     {
-      id: 2,
-      title: 'UI/UX Design Fundamentals',
-      description: 'Master the basics of user interface and user experience design',
-      category: 'design',
-      instructor: 'Jane Smith',
-      duration: '30 hours',
+      id: 'WEB3_DEV',
+      title: 'Web3 Development',
+      description: 'Build decentralized applications on NEAR Protocol',
+      category: 'development',
+      instructor: 'Achievo Education Institute',
+      instructorWallet: 'achievo-org.testnet',
+      duration: '12 weeks',
       level: 'Intermediate',
       priceNEAR: '8',
       priceUSD: '24',
+      skills: ['web3', 'smart_contracts', 'dapp_development', 'near_protocol'],
       image: '/ui-ux-design-banner.png'
     },
     {
-      id: 3,
-      title: 'Digital Marketing Strategy',
-      description: 'Learn effective digital marketing strategies for modern businesses',
-      category: 'marketing',
-      instructor: 'Mike Johnson',
-      duration: '25 hours',
+      id: 'DEFI_BASICS',
+      title: 'DeFi Fundamentals',
+      description: 'Understanding Decentralized Finance protocols',
+      category: 'finance',
+      instructor: 'Achievo Education Institute',
+      instructorWallet: 'achievo-org.testnet',
+      duration: '6 weeks',
       level: 'Beginner',
       priceNEAR: '6',
       priceUSD: '18',
+      skills: ['defi', 'liquidity_pools', 'yield_farming', 'tokenomics'],
       image: '/digital-marketing-banner.png'
     }
   ],
   certificates: [
     {
-      id: 'cert_1',
-      title: 'Vue.js Fundamentals',
+      id: 'CERT_001',
+      certificate_id: 'CERT_001',
+      title: 'Introduction to Blockchain',
       recipientName: 'John Student',
-      issuerName: 'Tech Academy',
-      issueDate: '2024-01-15',
-      status: 'verified'
+      recipientWallet: 'achievo-student.testnet',
+      issuerName: 'Achievo Education Institute',
+      issuerWallet: 'achievo-org.testnet',
+      courseId: 'BLOCKCHAIN_101',
+      issueDate: '2024-02-15',
+      completionDate: '2024-02-15',
+      grade: 'A',
+      skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
+      ipfs_hash: 'QmSampleHash123456789',
+      status: 'active'
     }
   ],
   rewards: [
     {
-      id: 1,
-      title: 'Early Bird',
-      description: 'Completed first course within 24 hours',
-      points: 100
+      id: 'REWARD_001',
+      reward_id: 'REWARD_001',
+      title: 'Completion Bonus',
+      description: 'Completion bonus for Blockchain 101 course',
+      learner_wallet: 'achievo-student.testnet',
+      certificate_id: 'CERT_001',
+      reward_type: 'completion_bonus',
+      amount: '10',
+      currency: 'NEAR',
+      points: 100,
+      granted_at: new Date('2024-02-16'),
+      status: 'granted'
+    }
+  ],
+  // Meteor Wallet configuration for testnet
+  meteorWalletAccounts: [
+    {
+      wallet_address: "achievo.testnet",
+      account_type: "admin",
+      display_name: "Achievo Admin"
+    },
+    {
+      wallet_address: "achievo-admin.testnet", 
+      account_type: "superuser",
+      display_name: "Super Administrator"
+    },
+    {
+      wallet_address: "achievo-student.testnet",
+      account_type: "student", 
+      display_name: "John Student"
+    },
+    {
+      wallet_address: "achievo-org.testnet",
+      account_type: "organization",
+      display_name: "Achievo Education Institute"
     }
   ]
 }
@@ -103,9 +199,15 @@ export const api = {
   // Auth endpoints
   register: (userData) => apiClient.post('/api/auth/register', userData),
   registerOrganization: (orgData) => apiClient.post('/api/auth/register-org', orgData),
+  registerIndividual: (userData) => apiClient.post('/api/auth/register-individual', userData),
   login: (credentials) => apiClient.post('/api/auth/login', credentials),
+  loginWithWallet: (walletData) => apiClient.post('/api/auth/wallet-login', walletData),
   logout: () => apiClient.post('/api/auth/logout'),
   refreshToken: () => apiClient.post('/api/auth/refresh'),
+  
+  // NEAR wallet specific
+  verifyWalletConnection: (walletAddress) => apiClient.post('/api/auth/verify-wallet', { wallet_address: walletAddress }),
+  getUserByWallet: (walletAddress) => apiClient.get(`/api/auth/user/${walletAddress}`),
 
   // User profile endpoints
   getProfile: () => apiClient.get('/api/profile'),
@@ -170,6 +272,32 @@ if (process.env.NODE_ENV === 'development') {
   api.getCertificates = () => createMockApiCall(mockData.certificates)
   api.getRewards = () => createMockApiCall(mockData.rewards)
   api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
+  
+  // Mock wallet authentication
+  api.loginWithWallet = (walletData) => {
+    const user = Object.values(mockData.users).find(u => u.wallet_address === walletData.wallet_address)
+    if (user) {
+      return createMockApiCall({ 
+        success: true, 
+        user, 
+        token: 'mock_wallet_token_' + walletData.wallet_address.replace('.', '_')
+      })
+    }
+    return Promise.reject(new Error('Wallet not found in system'))
+  }
+  
+  api.verifyWalletConnection = (walletAddress) => {
+    const user = Object.values(mockData.users).find(u => u.wallet_address === walletAddress)
+    return createMockApiCall({ verified: !!user, user })
+  }
+  
+  api.getUserByWallet = (walletAddress) => {
+    const user = Object.values(mockData.users).find(u => u.wallet_address === walletAddress)
+    if (user) {
+      return createMockApiCall(user)
+    }
+    return Promise.reject(new Error('User not found'))
+  }
 }
 
 // Export the apiClient for direct access

@@ -98,8 +98,23 @@ const handleLogin = async () => {
 const connectWallet = async (walletType) => {
   try {
     await nearStore.connectWallet(walletType)
-    if (nearStore.isConnected) {
-      router.push('/student-dashboard')
+    if (nearStore.isConnected && nearStore.accountId) {
+      // Authenticate with backend using wallet address
+      try {
+        await authStore.loginWithWallet(nearStore.accountId)
+        
+        // Redirect based on user type
+        if (authStore.userType === 'admin' || authStore.userType === 'superuser') {
+          router.push('/organization-dashboard')
+        } else if (authStore.userType === 'organization') {
+          router.push('/organization-dashboard')
+        } else {
+          router.push('/student-dashboard')
+        }
+      } catch (authError) {
+        console.error('Authentication failed:', authError)
+        alert('Authentication failed. Please ensure your wallet is registered in the system.')
+      }
     }
   } catch (error) {
     alert('Wallet connection failed: ' + error.message)
