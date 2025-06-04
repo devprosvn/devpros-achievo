@@ -38,16 +38,28 @@
         </form>
         
         <div class="wallet-section">
-          <h3>Or connect with NEAR Wallet</h3>
+          <h3>Connect with NEAR Wallet</h3>
           <div class="wallet-buttons">
-            <button @click="connectWallet('near')" class="btn btn-wallet">
-              Connect NEAR Wallet
-            </button>
             <button @click="connectWallet('meteor')" class="btn btn-wallet">
               Connect Meteor Wallet
             </button>
-            <button @click="connectWallet('mynear')" class="btn btn-wallet">
-              Connect MyNearWallet
+          </div>
+        </div>
+
+        <div class="sample-accounts">
+          <h3>Test Accounts (Development)</h3>
+          <div class="sample-buttons">
+            <button @click="loginAsSample('admin')" class="btn btn-sample">
+              Login as Admin (achievo.testnet)
+            </button>
+            <button @click="loginAsSample('superuser')" class="btn btn-sample">
+              Login as Superuser (achievo-admin.testnet)
+            </button>
+            <button @click="loginAsSample('student')" class="btn btn-sample">
+              Login as Student (achievo-student.testnet)
+            </button>
+            <button @click="loginAsSample('organization')" class="btn btn-sample">
+              Login as Organization (achievo-org.testnet)
             </button>
           </div>
         </div>
@@ -99,10 +111,59 @@ const connectWallet = async (walletType) => {
   try {
     await nearStore.connectWallet(walletType)
     if (nearStore.isConnected) {
-      router.push('/student-dashboard')
+      const userType = authStore.getUserTypeFromWallet(nearStore.accountId)
+      authStore.userType = userType
+      
+      // Route based on user type
+      if (userType === 'admin' || userType === 'superuser') {
+        router.push('/organization-dashboard')
+      } else if (userType === 'organization') {
+        router.push('/organization-dashboard')
+      } else {
+        router.push('/student-dashboard')
+      }
     }
   } catch (error) {
     alert('Wallet connection failed: ' + error.message)
+  }
+}
+
+const loginAsSample = (accountType) => {
+  const sampleAccounts = {
+    admin: {
+      wallet_address: 'achievo.testnet',
+      name: 'Achievo Admin',
+      email: 'admin@achievo.io',
+      role: 'admin'
+    },
+    superuser: {
+      wallet_address: 'achievo-admin.testnet',
+      name: 'Super Administrator',
+      email: 'superuser@achievo.io', 
+      role: 'superuser'
+    },
+    student: {
+      wallet_address: 'achievo-student.testnet',
+      name: 'John Student',
+      email: 'student@achievo.io',
+      role: 'learner'
+    },
+    organization: {
+      wallet_address: 'achievo-org.testnet',
+      name: 'Achievo Education Institute',
+      email: 'contact@achievo-edu.org',
+      role: 'organization'
+    }
+  }
+
+  const account = sampleAccounts[accountType]
+  authStore.loginWithWallet(account.wallet_address, account)
+  
+  // Route based on account type
+  if (accountType === 'admin' || accountType === 'superuser' || accountType === 'organization') {
+    router.push('/organization-dashboard')
+  } else {
+    router.push('/student-dashboard')
   }
 }
 </script>
@@ -225,5 +286,42 @@ const connectWallet = async (walletType) => {
 
 .login-footer a:hover {
   text-decoration: underline;
+}
+
+.sample-accounts {
+  margin-top: 30px;
+  padding-top: 30px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.sample-accounts h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #666;
+  font-size: 14px;
+}
+
+.sample-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.btn-sample {
+  background: #e3f2fd;
+  color: #1565c0;
+  border: 2px solid #2196f3;
+  font-size: 14px;
+  padding: 10px;
+}
+
+.btn-sample:hover {
+  background: #bbdefb;
+}
+
+@media (max-width: 768px) {
+  .sample-buttons {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -6,7 +6,7 @@ import { api } from '../services/api'
 export const useAuthStore = defineStore('auth', () => {
   const user = ref(null)
   const isAuthenticated = ref(false)
-  const userType = ref('student') // 'student' or 'organization'
+  const userType = ref('student') // 'student', 'organization', 'admin', or 'superuser'
 
   const login = async (credentials) => {
     try {
@@ -52,6 +52,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const getUserTypeFromWallet = (walletAddress) => {
+    if (walletAddress === 'achievo.testnet') return 'admin'
+    if (walletAddress === 'achievo-admin.testnet') return 'superuser'
+    if (walletAddress === 'achievo-org.testnet') return 'organization'
+    if (walletAddress === 'achievo-student.testnet') return 'student'
+    return 'student' // default
+  }
+
+  const loginWithWallet = (walletAddress, accountInfo) => {
+    user.value = {
+      wallet_address: walletAddress,
+      ...accountInfo
+    }
+    isAuthenticated.value = true
+    userType.value = getUserTypeFromWallet(walletAddress)
+    localStorage.setItem('wallet_address', walletAddress)
+    localStorage.setItem('user_type', userType.value)
+  }
+
   return {
     user,
     isAuthenticated,
@@ -60,6 +79,8 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     registerOrganization,
     logout,
-    initializeAuth
+    initializeAuth,
+    getUserTypeFromWallet,
+    loginWithWallet
   }
 })
