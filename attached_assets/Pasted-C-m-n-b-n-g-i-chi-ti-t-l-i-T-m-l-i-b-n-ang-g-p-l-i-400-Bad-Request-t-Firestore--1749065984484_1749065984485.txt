@@ -1,0 +1,95 @@
+Cảm ơn bạn đã gửi chi tiết lỗi. Tóm lại, bạn đang gặp lỗi:
+
+```
+❌ 400 (Bad Request) từ Firestore WebChannelConnection
+📛 RPC 'Write' stream transport errored
+```
+
+Đây là lỗi **rất đặc trưng của Firestore khi kết nối bị lỗi trong quá trình ghi dữ liệu (addDoc / setDoc)**.
+
+---
+
+## 🧩 **Nguyên nhân chính**
+
+Lỗi `400 Bad Request` ở endpoint kiểu như:
+
+```
+https://firestore.googleapis.com/google.firestore.v1.Firestore/Write/channel?...
+```
+
+⛔ nghĩa là **Firestore từ chối yêu cầu ghi vì request body không hợp lệ**. Nguyên nhân có thể gồm:
+
+### ❌ 1. Dữ liệu có `undefined`
+
+→ Đây là thủ phạm phổ biến nhất. Firestore **không chấp nhận bất kỳ giá trị `undefined` nào**, bao gồm:
+
+* `skills: undefined`
+* `image: undefined`
+* `duration: undefined`
+* `category: undefined` (đã gặp ở bạn trước đó)
+
+📌 **Ngay cả khi bạn `filter` trước đó**, nếu bạn quên `JSON.parse(JSON.stringify(...))`, `undefined` vẫn lọt vào một số SDK layer.
+
+---
+
+## ✅ Cách xử lý dứt điểm
+
+### 🔒 Bọc dữ liệu trước khi gửi bằng đoạn sau:
+
+```ts
+// Xóa tất cả undefined/null trước khi gửi
+function cleanObject(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([_, value]) => value !== undefined && value !== null)
+  );
+}
+
+// Khi tạo course:
+const cleanCourse = cleanObject(courseData); // ← đảm bảo sạch sẽ
+await addDoc(collection(db, "courses"), cleanCourse);
+```
+
+---
+
+### 🧪 Tip: kiểm tra object trước khi gửi
+
+In ra console:
+
+```ts
+console.log("DATA TO SAVE:", JSON.stringify(cleanCourse, null, 2));
+```
+
+Nếu có bất kỳ `"someField": undefined` hoặc `"someField": null` thì bạn **chắc chắn sẽ bị lỗi 400**.
+
+---
+
+## 🚨 Nếu bạn dùng Firestore Realtime Updates (listener)
+
+Lỗi `Write.channel` như:
+
+```
+RPC 'Write' stream 0x177f782f transport errored.
+```
+
+→ Còn xảy ra nếu:
+
+* Client bị mất kết nối mạng tạm thời.
+* Firebase SDK không thể duy trì phiên `stream` (ví dụ trên Replit hoặc network yếu).
+* Bạn mở quá nhiều listener đồng thời (`onSnapshot`).
+
+✅ Tạm thời hãy thử **viết đơn giản với `addDoc()`** thay vì `onSnapshot` để test ổn định.
+
+---
+
+## ✅ Tổng kết khắc phục
+
+| Vấn đề                     | Giải pháp                                          |
+| -------------------------- | -------------------------------------------------- |
+| Lỗi 400 khi ghi            | Dọn sạch dữ liệu: không để `undefined` hoặc `null` |
+| RPC Write stream error     | Do request bất hợp lệ hoặc quá nhiều session       |
+| Replit quá chậm / mạng yếu | Test thử trên `localhost` hoặc 4G thật             |
+| Debug object trước khi gửi | Dùng `console.log(JSON.stringify(obj, null, 2))`   |
+
+---
+
+Nếu bạn muốn mình rewrite lại `api.createCourse()` để **chắc chắn 100% không lỗi**, mình có thể gửi đoạn code hoàn chỉnh. Bạn muốn không?
