@@ -74,7 +74,7 @@
     <!-- Add Course Modal -->
     <div v-if="showAddCourse" class="modal-overlay" @click="showAddCourse = false">
       <div class="modal" @click.stop>
-        <h3>Add New Course</h3>
+        <h3>{{ editingCourseId ? 'Edit Course' : 'Add New Course' }}</h3>
         <form @submit.prevent="addCourse">
           <div class="form-group">
             <label>Course Title</label>
@@ -89,8 +89,8 @@
             <input v-model="newCourse.price" type="number" step="0.01" required>
           </div>
           <div class="form-actions">
-            <button type="button" @click="showAddCourse = false" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary">Add Course</button>
+            <button type="button" @click="cancelCourseEdit" class="btn btn-secondary">Cancel</button>
+            <button type="submit" class="btn btn-primary">{{ editingCourseId ? 'Update Course' : 'Add Course' }}</button>
           </div>
         </form>
       </div>
@@ -123,6 +123,49 @@
             <button type="submit" class="btn btn-primary">Issue Certificate</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Students List Modal -->
+    <div v-if="showStudentsList" class="modal-overlay" @click="showStudentsList = false">
+      <div class="modal large-modal" @click.stop>
+        <h3>Students in {{ selectedCourse?.title }}</h3>
+        <div v-if="courseStudents.length === 0" class="no-students">
+          <p>Chưa có học viên nào trong khóa học này.</p>
+        </div>
+        <div v-else class="students-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Tên học viên</th>
+                <th>Email</th>
+                <th>Ngày hoàn thành</th>
+                <th>Trạng thái</th>
+                <th>Chứng chỉ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="student in courseStudents" :key="student.certificateId">
+                <td>{{ student.name }}</td>
+                <td>{{ student.email }}</td>
+                <td>{{ formatDate(student.issueDate) }}</td>
+                <td>
+                  <span class="badge" :class="'badge-' + (student.status === 'completed' ? 'success' : 'warning')">
+                    {{ student.status === 'completed' ? 'Hoàn thành' : 'Đang học' }}
+                  </span>
+                </td>
+                <td>
+                  <button @click="viewCertificateFromStudent(student.certificateId)" class="btn btn-info btn-sm">
+                    Xem chứng chỉ
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="form-actions">
+          <button @click="showStudentsList = false" class="btn btn-secondary">Đóng</button>
+        </div>
       </div>
     </div>
   </div>
@@ -158,6 +201,11 @@ const newCertificate = ref({
   courseId: ''
 })
 
+const editingCourseId = ref(null)
+const showStudentsList = ref(false)
+const selectedCourse = ref(null)
+const courseStudents = ref([])
+
 const logout = () => {
   authStore.logout()
   router.push('/login')
@@ -181,15 +229,25 @@ const loadData = async () => {
 
 const addCourse = async () => {
   try {
-    const response = await api.createCourse(newCourse.value)
-    console.log('Course created successfully:', response.data)
+    if (editingCourseId.value) {
+      // Update existing course
+      const response = await api.updateCourse(editingCourseId.value, newCourse.value)
+      console.log('Course updated successfully:', response.data)
+      alert('Khóa học đã được cập nhật thành công!')
+    } else {
+      // Create new course
+      const response = await api.createCourse(newCourse.value)
+      console.log('Course created successfully:', response.data)
+      alert('Khóa học đã được tạo thành công!')
+    }
+    
     showAddCourse.value = false
     newCourse.value = { title: '', description: '', price: 0 }
+    editingCourseId.value = null
     await loadData()
-    alert('Khóa học đã được tạo thành công!')
   } catch (error) {
-    console.error('Failed to add course:', error)
-    alert('Có lỗi khi tạo khóa học: ' + error.message)
+    console.error('Failed to save course:', error)
+    alert('Có lỗi khi lưu khóa học: ' + error.message)
   }
 }
 
@@ -224,13 +282,21 @@ const formatDate = (dateString) => {
 }
 
 const editCourse = (course) => {
-  // Implementation for editing course
-  console.log('Edit course:', course)
+  // Set the course data to edit
+  newCourse.value = {
+    title: course.title,
+    description: course.description,
+    price: parseFloat(course.priceNEAR)
+  }
+  editingCourseId.value = course.id
+  showAddCourse.value = true
 }
 
 const viewStudents = (course) => {
-  // Implementation for viewing students
-  console.log('View students for course:', course)
+  // Show students enrolled in this course
+  selectedCourse.value = course
+  loadCourseStudents(course)
+  showStudentsList.value = true
 }
 
 const viewCertificate = (certificate) => {
@@ -256,6 +322,34 @@ const revokeCertificate = async (certificate) => {
     } catch (error) {
       console.error('Failed to revoke certificate:', error)
     }
+  }
+}
+
+const loadCourseStudents = (course) => {
+  // Get students who have certificates for this course
+  const studentsInCourse = certificates.value
+    .filter(cert => cert.courseId === course.id)
+    .map(cert => ({
+      name: cert.recipientName || cert.studentName || cert.studentEmail,
+      email: cert.studentEmail || cert.recipientName,
+      certificateId: cert.id,
+      issueDate: cert.issueDate || cert.issuedDate,
+      status: cert.status || 'completed'
+    }))
+  
+  courseStudents.value = studentsInCourse
+}
+
+const cancelCourseEdit = () => {
+  showAddCourse.value = false
+  newCourse.value = { title: '', description: '', price: 0 }
+  editingCourseId.value = null
+}
+
+const viewCertificateFromStudent = (certificateId) => {
+  const certificate = certificates.value.find(cert => cert.id === certificateId)
+  if (certificate) {
+    viewCertificate(certificate)
   }
 }
 
@@ -482,5 +576,61 @@ onMounted(() => {
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
+}
+
+.large-modal {
+  width: 90%;
+  max-width: 800px;
+}
+
+.students-table {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.students-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.students-table th,
+.students-table td {
+  padding: 0.75rem;
+  border: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.students-table th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.no-students {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-success {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.badge-warning {
+  background: #fef3c7;
+  color: #92400e;
 }
 </style>

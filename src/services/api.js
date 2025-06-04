@@ -332,6 +332,22 @@ api.createCourse = (courseData) => {
   return createMockApiCall(newCourse)
 }
 
+// Mock update course
+api.updateCourse = (courseId, courseData) => {
+  const index = mockData.courses.findIndex(course => course.id === courseId)
+  if (index > -1) {
+    mockData.courses[index] = {
+      ...mockData.courses[index],
+      title: courseData.title,
+      description: courseData.description,
+      priceNEAR: courseData.price.toString(),
+      priceUSD: (courseData.price * 3).toString()
+    }
+    return createMockApiCall(mockData.courses[index])
+  }
+  return createMockApiCall({ error: 'Course not found' })
+}
+
 // Mock issue certificate with IPFS minting
 api.issueCertificate = async (certificateData) => {
   const newCertificate = {
