@@ -160,6 +160,118 @@ export const firebaseService = {
     }
   },
 
+  // User Roles operations
+  async createUserRole(roleData) {
+    try {
+      const rolesRef = collection(db, 'user_roles')
+      const docRef = await addDoc(rolesRef, {
+        ...roleData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      return { id: docRef.id, ...roleData }
+    } catch (error) {
+      console.error('Error creating user role:', error)
+      throw error
+    }
+  },
+
+  async getUserRole(walletAddress) {
+    try {
+      const rolesRef = collection(db, 'user_roles')
+      const q = query(rolesRef, where('wallet_address', '==', walletAddress))
+      const querySnapshot = await getDocs(q)
+      
+      if (querySnapshot.empty) {
+        return null
+      }
+      
+      const doc = querySnapshot.docs[0]
+      return { id: doc.id, ...doc.data() }
+    } catch (error) {
+      console.error('Error getting user role:', error)
+      throw error
+    }
+  },
+
+  async updateUserRole(roleId, roleData) {
+    try {
+      const roleRef = doc(db, 'user_roles', roleId)
+      await updateDoc(roleRef, {
+        ...roleData,
+        updatedAt: new Date()
+      })
+      return { id: roleId, ...roleData }
+    } catch (error) {
+      console.error('Error updating user role:', error)
+      throw error
+    }
+  },
+
+  async getAllUserRoles() {
+    try {
+      const rolesRef = collection(db, 'user_roles')
+      const q = query(rolesRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+      const roles = []
+      querySnapshot.forEach((doc) => {
+        roles.push({ id: doc.id, ...doc.data() })
+      })
+      return roles
+    } catch (error) {
+      console.error('Error getting user roles:', error)
+      throw error
+    }
+  },
+
+  // NFT Certificates operations
+  async createNFTCertificate(nftData) {
+    try {
+      const nftRef = collection(db, 'nft_certificates')
+      const docRef = await addDoc(nftRef, {
+        ...nftData,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      })
+      return { id: docRef.id, ...nftData }
+    } catch (error) {
+      console.error('Error creating NFT certificate:', error)
+      throw error
+    }
+  },
+
+  async getNFTCertificates() {
+    try {
+      const nftRef = collection(db, 'nft_certificates')
+      const q = query(nftRef, orderBy('createdAt', 'desc'))
+      const querySnapshot = await getDocs(q)
+      const nftCertificates = []
+      querySnapshot.forEach((doc) => {
+        nftCertificates.push({ id: doc.id, ...doc.data() })
+      })
+      return nftCertificates
+    } catch (error) {
+      console.error('Error getting NFT certificates:', error)
+      throw error
+    }
+  },
+
+  async getNFTCertificatesByOwner(walletAddress) {
+    try {
+      const nftRef = collection(db, 'nft_certificates')
+      const q = query(nftRef, where('owner_id', '==', walletAddress))
+      const querySnapshot = await getDocs(q)
+      const nftCertificates = []
+      querySnapshot.forEach((doc) => {
+        nftCertificates.push({ id: doc.id, ...doc.data() })
+      })
+      return nftCertificates
+    } catch (error) {
+      console.error('Error getting NFT certificates by owner:', error)
+      throw error
+    }
+  },
+
   // Organizations operations
   async createOrganization(orgData) {
     try {

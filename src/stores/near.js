@@ -309,6 +309,69 @@ export const useNearStore = defineStore('near', () => {
     }
   }
 
+  // NFT Certificate Functions
+  const mintNFTCertificate = async (certificateData) => {
+    return await callMethod('mint_nft_certificate', {
+      receiver_id: certificateData.receiverId,
+      metadata: {
+        title: certificateData.title || 'Achievement Certificate',
+        description: certificateData.description || 'Digital certificate of achievement',
+        media: certificateData.mediaUrl,
+        media_hash: certificateData.mediaHash,
+        extra: certificateData.certificateId ? `certificate_id:${certificateData.certificateId}` : undefined,
+        reference: certificateData.referenceUrl,
+        reference_hash: certificateData.referenceHash
+      },
+      certificate_id: certificateData.certificateId
+    })
+  }
+
+  const getNFTToken = async (tokenId) => {
+    return await viewMethod('nft_token', { token_id: tokenId })
+  }
+
+  const getNFTTokensForOwner = async (accountId, fromIndex = 0, limit = 50) => {
+    return await viewMethod('nft_tokens_for_owner', { 
+      account_id: accountId, 
+      from_index: fromIndex, 
+      limit: limit 
+    }) || []
+  }
+
+  const getNFTSupplyForOwner = async (accountId) => {
+    return await viewMethod('nft_supply_for_owner', { account_id: accountId }) || 0
+  }
+
+  const transferNFT = async (receiverId, tokenId, memo) => {
+    return await callMethod('nft_transfer', {
+      receiver_id: receiverId,
+      token_id: tokenId,
+      memo: memo
+    })
+  }
+
+  const approveNFT = async (tokenId, accountId) => {
+    return await callMethod('nft_approve', {
+      token_id: tokenId,
+      account_id: accountId
+    })
+  }
+
+  const revokeNFTApproval = async (tokenId, accountId) => {
+    return await callMethod('nft_revoke', {
+      token_id: tokenId,
+      account_id: accountId
+    })
+  }
+
+  const getNFTMetadata = async () => {
+    return await viewMethod('nft_metadata') || {
+      spec: "nft-1.0.0",
+      name: "Achievo Certificates",
+      symbol: "ACHIEVO"
+    }
+  }
+
   // Tự động khởi tạo NEAR khi store được sử dụng lần đầu ở client-side
   if (typeof window !== 'undefined') {
     initNear().catch(err => console.error("Auto-init Near failed during store setup:", err))
@@ -335,5 +398,13 @@ export const useNearStore = defineStore('near', () => {
     updateCertificate,
     revokeCertificate,
     validateCertificate,
+    mintNFTCertificate,
+    getNFTToken,
+    getNFTTokensForOwner,
+    getNFTSupplyForOwner,
+    transferNFT,
+    approveNFT,
+    revokeNFTApproval,
+    getNFTMetadata,
   }
 })

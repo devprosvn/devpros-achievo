@@ -221,6 +221,118 @@ Skills Acquired: ${certificate.skills?.join(', ') || 'N/A'}
         error: error.message
       }
     }
+  },
+
+  // Mint NFT Certificate to IPFS
+  async mintNFTCertificateToIPFS(nftData) {
+    try {
+      if (!this.pinata) {
+        throw new Error('Pinata not initialized')
+      }
+
+      // Create NFT metadata following NEP-171 standard
+      const nftMetadata = {
+        title: nftData.title || 'Achievement Certificate',
+        description: nftData.description || 'Digital certificate of achievement',
+        media: nftData.mediaUrl,
+        media_hash: nftData.mediaHash,
+        copies: 1,
+        issued_at: new Date().toISOString(),
+        expires_at: nftData.expiresAt,
+        extra: nftData.extra || (nftData.certificateId ? `certificate_id:${nftData.certificateId}` : ''),
+        reference: nftData.referenceUrl,
+        reference_hash: nftData.referenceHash
+      }
+
+      // Generate certificate visual representation
+      const certificateFile = this.generateNFTCertificateFile(nftData)
+      
+      // Upload certificate file to IPFS
+      const fileUpload = await this.pinata.upload.file(certificateFile, {
+        metadata: {
+          name: `nft-certificate-${nftData.tokenId || Date.now()}.png`,
+          keyvalues: {
+            type: 'nft_certificate',
+            token_id: nftData.tokenId || '',
+            owner_id: nftData.ownerId || '',
+            issuer_id: nftData.issuerId || ''
+          }
+        }
+      })
+
+      if (!fileUpload.IpfsHash) {
+        throw new Error(`File upload failed: ${fileUpload.error}`)
+      }
+
+      // Update metadata with file URL
+      nftMetadata.media = `https://gateway.pinata.cloud/ipfs/${fileUpload.IpfsHash}`
+      nftMetadata.media_hash = fileUpload.IpfsHash
+
+      // Upload metadata to IPFS
+      const metadataUpload = await this.pinata.upload.json(nftMetadata, {
+        metadata: {
+          name: `nft-metadata-${nftData.tokenId || Date.now()}.json`,
+          keyvalues: {
+            type: 'nft_metadata',
+            token_id: nftData.tokenId || '',
+            owner_id: nftData.ownerId || ''
+          }
+        }
+      })
+
+      if (!metadataUpload.IpfsHash) {
+        throw new Error(`Metadata upload failed: ${metadataUpload.error}`)
+      }
+
+      return {
+        success: true,
+        nftMetadata,
+        metadataHash: metadataUpload.IpfsHash,
+        metadataUrl: `https://gateway.pinata.cloud/ipfs/${metadataUpload.IpfsHash}`,
+        mediaHash: fileUpload.IpfsHash,
+        mediaUrl: `https://gateway.pinata.cloud/ipfs/${fileUpload.IpfsHash}`
+      }
+    } catch (error) {
+      console.error('Error minting NFT certificate to IPFS:', error)
+      return {
+        success: false,
+        error: error.message
+      }
+    }
+  },
+
+  // Generate NFT Certificate File (visual representation)
+  generateNFTCertificateFile(nftData) {
+    const content = `
+🏆 DIGITAL CERTIFICATE NFT 🏆
+
+Certificate Title: ${nftData.title || 'Achievement Certificate'}
+Token ID: ${nftData.tokenId || 'Pending'}
+Owner: ${nftData.ownerId || 'Pending'}
+Issuer: ${nftData.issuerId || 'Organization'}
+
+Description: ${nftData.description || 'Digital certificate of achievement on NEAR Protocol'}
+
+Issue Date: ${new Date().toLocaleDateString()}
+Blockchain: NEAR Protocol
+Standard: NEP-171
+
+This is a digital certificate issued as an NFT on NEAR blockchain.
+Verify authenticity through the blockchain explorer.
+
+Certificate Details:
+${nftData.extra || 'Additional certificate information'}
+
+IPFS: This certificate is stored on IPFS for decentralized access
+Contract: bernieio.testnet
+    `
+    
+    return new File([content], `nft-certificate-${nftData.tokenId || Date.now()}.txt`, {
+      type: 'text/plain'
+    })
+  }
+      }
+    }
   }
 }
 

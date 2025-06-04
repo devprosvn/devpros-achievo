@@ -87,6 +87,82 @@
             <div class="certificate-actions">
               <button class="btn btn-sm">Download</button>
               <button class="btn btn-sm btn-outline">Share</button>
+              <button v-if="authStore.isOrganizationVerifier()" @click="openMintNFT(cert)" class="btn btn-sm btn-purple">
+                Mint NFT
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NFT Certificates Section -->
+      <div class="mb-8">
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-bold text-gray-900">My NFT Certificates</h2>
+            <button
+              @click="refreshNFTCertificates"
+              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
+            >
+              Refresh
+            </button>
+          </div>
+
+          <div v-if="loadingNFTs" class="text-center py-8">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <p class="mt-2 text-gray-600">Loading NFT certificates...</p>
+          </div>
+
+          <div v-else-if="nftCertificates.length === 0" class="text-center py-8">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No NFT certificates</h3>
+            <p class="mt-1 text-sm text-gray-500">You don't have any NFT certificates yet.</p>
+          </div>
+
+          <div v-else class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div
+              v-for="nft in nftCertificates"
+              :key="nft.token_id"
+              class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
+            >
+              <div class="flex items-start justify-between">
+                <div class="flex-1">
+                  <h3 class="font-semibold text-gray-900">{{ nft.metadata.title }}</h3>
+                  <p class="text-sm text-gray-600 mt-1">{{ nft.metadata.description }}</p>
+                  <div class="mt-2 space-y-1">
+                    <p class="text-xs text-gray-500">Token ID: {{ nft.token_id }}</p>
+                    <p class="text-xs text-gray-500">Issued: {{ formatDate(nft.metadata.issued_at) }}</p>
+                    <span class="inline-block bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs">
+                      NFT Certificate
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="mt-4 flex space-x-2">
+                <button
+                  v-if="nft.metadata.media"
+                  @click="viewNFTMedia(nft)"
+                  class="bg-indigo-600 text-white px-3 py-1 text-sm rounded hover:bg-indigo-700 transition-colors"
+                >
+                  View Media
+                </button>
+                <button
+                  v-if="nft.metadata.reference"
+                  @click="viewNFTMetadata(nft)"
+                  class="bg-green-600 text-white px-3 py-1 text-sm rounded hover:bg-green-700 transition-colors"
+                >
+                  View Metadata
+                </button>
+                <button
+                  @click="shareNFT(nft)"
+                  class="bg-blue-600 text-white px-3 py-1 text-sm rounded hover:bg-blue-700 transition-colors"
+                >
+                  Share
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -134,6 +210,16 @@
         </div>
       </div>
     </main>
+
+    <!-- NFT Minting Modal -->
+    <div v-if="showMintModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white rounded-lg max-w-2xl w-full m-4 max-h-screen overflow-y-auto">
+        <NFTCertificateMinter
+          @success="handleMintSuccess"
+          @cancel="closeMintModal"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -143,6 +229,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNearStore } from '../stores/near'
 import { api } from '../services/api'
+import NFTCertificateMinter from '../components/NFTCertificateMinter.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -151,9 +238,15 @@ const nearStore = useNearStore()
 const activeTab = ref('overview')
 const certificates = ref([])
 const rewards = ref([])
+const nftCertificates = ref([])
 const recentActivities = ref([])
 const completedCourses = ref(0)
 const learningProgress = ref(0)
+const loading = ref(true)
+const loadingNFTs = ref(false)
+const error = ref('')
+const showMintModal = ref(false)
+const selectedCertificate = ref(null)
 
 const user = ref(authStore.user)
 const profileForm = ref({
@@ -166,6 +259,7 @@ const profileForm = ref({
 onMounted(async () => {
   await loadDashboardData()
   await nearStore.initNear()
+  await loadNFTCertificates()
 })
 
 const loadDashboardData = async () => {
@@ -244,6 +338,88 @@ const logout = () => {
   nearStore.disconnectWallet()
   router.push('/')
 }
+
+const shareCertificate = async (certificate) => {
+  try {
+    await api.shareCertificate(certificate)
+    // Show success message
+  } catch (error) {
+    console.error('Failed to share certificate:', error)
+  }
+}
+
+const loadNFTCertificates = async () => {
+  if (!authStore.isAuthenticated || !authStore.user?.wallet_address) return
+
+  try {
+    loadingNFTs.value = true
+    const nftTokens = await nearStore.getNFTTokensForOwner(authStore.user.wallet_address)
+    nftCertificates.value = nftTokens || []
+  } catch (error) {
+    console.error('Failed to load NFT certificates:', error)
+  } finally {
+    loadingNFTs.value = false
+  }
+}
+
+const refreshNFTCertificates = async () => {
+  await loadNFTCertificates()
+}
+
+const openMintNFT = (certificate) => {
+  selectedCertificate.value = certificate
+  showMintModal.value = true
+}
+
+const closeMintModal = () => {
+  showMintModal.value = false
+  selectedCertificate.value = null
+}
+
+const handleMintSuccess = (result) => {
+  console.log('NFT minted successfully:', result)
+  showMintModal.value = false
+  selectedCertificate.value = null
+  // Refresh NFT certificates
+  loadNFTCertificates()
+}
+
+const viewNFTMedia = (nft) => {
+  if (nft.metadata.media) {
+    window.open(nft.metadata.media, '_blank')
+  }
+}
+
+const viewNFTMetadata = (nft) => {
+  if (nft.metadata.reference) {
+    window.open(nft.metadata.reference, '_blank')
+  }
+}
+
+const shareNFT = async (nft) => {
+  try {
+    const shareText = `Check out my NFT certificate: ${nft.metadata.title}`
+    const shareUrl = nft.metadata.reference || nft.metadata.media
+
+    if (navigator.share) {
+      await navigator.share({
+        title: `NFT Certificate: ${nft.metadata.title}`,
+        text: shareText,
+        url: shareUrl
+      })
+    } else {
+      await navigator.clipboard.writeText(`${shareText} - ${shareUrl}`)
+      // Show success message
+    }
+  } catch (error) {
+    console.error('Failed to share NFT:', error)
+  }
+}
+
+const formatDate = (timestamp) => {
+  const date = new Date(timestamp / 1000000);
+  return date.toLocaleDateString();
+}
 </script>
 
 <style scoped>
@@ -316,7 +492,7 @@ const logout = () => {
 
 .dashboard-header {
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
@@ -354,6 +530,11 @@ const logout = () => {
   background: transparent;
   border: 2px solid #3498db;
   color: #3498db;
+}
+
+.btn-purple {
+  background: #8e44ad;
+  color: white;
 }
 
 .stats-grid {

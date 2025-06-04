@@ -65,7 +65,7 @@ const mockData = {
       verified: true
     }
   },
-  
+
   courses: [
     {
       id: 'BLOCKCHAIN_101',
@@ -110,7 +110,7 @@ const mockData = {
       organization_wallet: 'achievo-org.testnet'
     }
   ],
-  
+
   certificates: [
     {
       id: 'CERT_001',
@@ -129,7 +129,7 @@ const mockData = {
       blockchainHash: 'QmSampleHash123456789'
     }
   ],
-  
+
   rewards: [
     {
       id: 'REWARD_001',
@@ -181,7 +181,7 @@ export const api = {
       cert.certificate_id === certificateId ||
       cert.blockchainHash === certificateId
     )
-    
+
     if (certificate) {
       return createMockApiCall({
         isValid: certificate.status !== 'revoked',
@@ -286,7 +286,7 @@ export const api = {
   shareCertificate: (certificate) => {
     const shareUrl = certificate.ipfsUrl || `${window.location.origin}/certificate-validation?id=${certificate.id}`
     const shareText = `Check out my certificate: ${certificate.title} - Issued by ${certificate.issuerName}`
-    
+
     if (navigator.share) {
       return navigator.share({
         title: `Certificate: ${certificate.title}`,
@@ -427,6 +427,95 @@ api.revokeCertificate = async (id) => {
   } catch (error) {
     console.error('Failed to revoke certificate:', error)
     throw error
+  }
+
+  // NFT Certificate operations
+  api.mintNFTCertificate = async (nftData) => {
+    try {
+      const newNFT = {
+        token_id: `nft_cert_${Date.now()}`,
+        owner_id: nftData.receiverId,
+        certificate_id: nftData.certificateId,
+        metadata: {
+          title: nftData.title || 'Achievement Certificate',
+          description: nftData.description || 'Digital certificate of achievement',
+          media: nftData.mediaUrl,
+          media_hash: nftData.mediaHash,
+          issued_at: new Date().toISOString(),
+          extra: nftData.certificateId ? `certificate_id:${nftData.certificateId}` : undefined
+        },
+        issuer_id: nftData.issuerId,
+        blockchain_hash: nftData.blockchainHash
+      }
+
+      // Save to Firebase
+      const result = await firebaseService.createNFTCertificate(newNFT)
+      return { data: result }
+    } catch (error) {
+      console.error('Failed to mint NFT certificate:', error)
+      throw error
+    }
+  }
+
+  api.getNFTCertificates = async () => {
+    try {
+      const nftCertificates = await firebaseService.getNFTCertificates()
+      return { data: nftCertificates }
+    } catch (error) {
+      console.error('Failed to get NFT certificates:', error)
+      throw error
+    }
+  }
+
+  api.getNFTCertificatesByOwner = async (walletAddress) => {
+    try {
+      const nftCertificates = await firebaseService.getNFTCertificatesByOwner(walletAddress)
+      return { data: nftCertificates }
+    } catch (error) {
+      console.error('Failed to get NFT certificates by owner:', error)
+      throw error
+    }
+  }
+
+  // Role management operations
+  api.getUserRole = async (walletAddress) => {
+    try {
+      const role = await firebaseService.getUserRole(walletAddress)
+      return { data: role }
+    } catch (error) {
+      console.error('Failed to get user role:', error)
+      throw error
+    }
+  }
+
+  api.assignRole = async (roleData) => {
+    try {
+      const result = await firebaseService.createUserRole(roleData)
+      return { data: result }
+    } catch (error) {
+      console.error('Failed to assign role:', error)
+      throw error
+    }
+  }
+
+  api.updateRole = async (roleId, roleData) => {
+    try {
+      const result = await firebaseService.updateUserRole(roleId, roleData)
+      return { data: result }
+    } catch (error) {
+      console.error('Failed to update role:', error)
+      throw error
+    }
+  }
+
+  api.getAllUserRoles = async () => {
+    try {
+      const roles = await firebaseService.getAllUserRoles()
+      return { data: roles }
+    } catch (error) {
+      console.error('Failed to get all user roles:', error)
+      throw error
+    }
   }
 }
 
