@@ -1,5 +1,6 @@
 import axios from 'axios'
 import PinataService from './pinata'
+import firebaseService from './firebase'
 
 const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
 
@@ -305,93 +306,128 @@ export const api = {
   },
 }
 
-// Always use mock data until real backend is available
-// Remove the environment check to use mock data in both development and production
-api.getCourses = () => createMockApiCall(mockData.courses)
-api.getCertificates = () => createMockApiCall(mockData.certificates)
+// Firebase-backed get courses
+api.getCourses = async () => {
+  try {
+    const courses = await firebaseService.getCourses()
+    return { data: courses }
+  } catch (error) {
+    console.error('Failed to get courses:', error)
+    // Fallback to mock data if Firebase fails
+    return createMockApiCall(mockData.courses)
+  }
+}
+// Firebase-backed get certificates
+api.getCertificates = async () => {
+  try {
+    const certificates = await firebaseService.getCertificates()
+    return { data: certificates }
+  } catch (error) {
+    console.error('Failed to get certificates:', error)
+    // Fallback to mock data if Firebase fails
+    return createMockApiCall(mockData.certificates)
+  }
+}
 api.getRewards = () => createMockApiCall(mockData.rewards)
 api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
 
-// Mock create course
-api.createCourse = (courseData) => {
-  const newCourse = {
-    id: `COURSE_${Date.now()}`,
-    title: courseData.title,
-    description: courseData.description,
-    category: 'general',
-    instructor: 'Organization',
-    duration: '4 weeks',
-    level: 'Beginner',
-    priceNEAR: courseData.price.toString(),
-    priceUSD: (courseData.price * 3).toString(),
-    image: '/vue-js-logo.png',
-    skills: ['learning'],
-    organization_wallet: 'achievo-org.testnet'
-  }
-  mockData.courses.push(newCourse)
-  return createMockApiCall(newCourse)
-}
-
-// Mock update course
-api.updateCourse = (courseId, courseData) => {
-  const index = mockData.courses.findIndex(course => course.id === courseId)
-  if (index > -1) {
-    mockData.courses[index] = {
-      ...mockData.courses[index],
+// Firebase-backed course operations
+api.createCourse = async (courseData) => {
+  try {
+    const newCourse = {
       title: courseData.title,
       description: courseData.description,
-      priceNEAR: courseData.price.toString(),
-      priceUSD: (courseData.price * 3).toString()
+      category: courseData.category || 'general',
+      instructor: courseData.instructor || 'Organization',
+      duration: courseData.duration || '4 weeks',
+      level: courseData.level || 'Beginner',
+      priceNEAR: courseData.price?.toString() || '0',
+      priceUSD: (courseData.price * 3)?.toString() || '0',
+      image: courseData.image || '/vue-js-logo.png',
+      skills: courseData.skills || ['learning'],
+      organization_wallet: courseData.organization_wallet || 'achievo-org.testnet'
     }
-    return createMockApiCall(mockData.courses[index])
-  }
-  return createMockApiCall({ error: 'Course not found' })
-}
-
-// Mock issue certificate with IPFS minting
-api.issueCertificate = async (certificateData) => {
-  const newCertificate = {
-    id: `CERT_${Date.now()}`,
-    certificate_id: `CERT_${Date.now()}`,
-    title: certificateData.title,
-    recipientName: certificateData.studentEmail,
-    recipientWallet: 'student.testnet',
-    issuerName: 'Organization',
-    issuerWallet: 'achievo-org.testnet',
-    courseId: certificateData.courseId,
-    issueDate: certificateData.issuedDate || new Date().toISOString(),
-    completionDate: new Date().toISOString(),
-    grade: 'A',
-    skills: ['learning'],
-    status: 'verified',
-    blockchainHash: `QmHash${Date.now()}`
-  }
-
-  // Mint to IPFS using Pinata
-  try {
-    const ipfsResult = await PinataService.mintCertificateToIPFS(newCertificate)
-    if (ipfsResult.success) {
-      newCertificate.ipfsHash = ipfsResult.metadataHash
-      newCertificate.ipfsUrl = ipfsResult.metadataUrl
-      newCertificate.fileHash = ipfsResult.fileHash
-      newCertificate.fileUrl = ipfsResult.fileUrl
-      newCertificate.blockchainHash = ipfsResult.metadataHash
-    }
+    const result = await firebaseService.createCourse(newCourse)
+    return { data: result }
   } catch (error) {
-    console.error('IPFS minting failed:', error)
+    console.error('Failed to create course:', error)
+    throw error
   }
-
-  mockData.certificates.push(newCertificate)
-  return createMockApiCall(newCertificate)
 }
 
-// Mock revoke certificate  
-api.revokeCertificate = (id) => {
-  const index = mockData.certificates.findIndex(cert => cert.id === id)
-  if (index > -1) {
-    mockData.certificates.splice(index, 1)
+// Firebase update course
+api.updateCourse = async (courseId, courseData) => {
+  try {
+    const updateData = {
+      title: courseData.title,
+      description: courseData.description,
+      priceNEAR: courseData.price?.toString(),
+      priceUSD: (courseData.price * 3)?.toString(),
+      category: courseData.category,
+      instructor: courseData.instructor,
+      duration: courseData.duration,
+      level: courseData.level,
+      image: courseData.image,
+      skills: courseData.skills
+    }
+    const result = await firebaseService.updateCourse(courseId, updateData)
+    return { data: result }
+  } catch (error) {
+    console.error('Failed to update course:', error)
+    throw error
   }
-  return createMockApiCall({ success: true })
+}
+
+// Firebase-backed issue certificate with IPFS minting
+api.issueCertificate = async (certificateData) => {
+  try {
+    const newCertificate = {
+      certificate_id: `CERT_${Date.now()}`,
+      title: certificateData.title,
+      recipientName: certificateData.studentEmail,
+      recipientWallet: 'student.testnet',
+      issuerName: 'Organization',
+      issuerWallet: 'achievo-org.testnet',
+      courseId: certificateData.courseId,
+      issueDate: certificateData.issuedDate || new Date().toISOString(),
+      completionDate: new Date().toISOString(),
+      grade: 'A',
+      skills: ['learning'],
+      status: 'verified',
+      blockchainHash: `QmHash${Date.now()}`
+    }
+
+    // Mint to IPFS using Pinata
+    try {
+      const ipfsResult = await PinataService.mintCertificateToIPFS(newCertificate)
+      if (ipfsResult.success) {
+        newCertificate.ipfsHash = ipfsResult.metadataHash
+        newCertificate.ipfsUrl = ipfsResult.metadataUrl
+        newCertificate.fileHash = ipfsResult.fileHash
+        newCertificate.fileUrl = ipfsResult.fileUrl
+        newCertificate.blockchainHash = ipfsResult.metadataHash
+      }
+    } catch (error) {
+      console.error('IPFS minting failed:', error)
+    }
+
+    const result = await firebaseService.createCertificate(newCertificate)
+    return { data: result }
+  } catch (error) {
+    console.error('Failed to issue certificate:', error)
+    throw error
+  }
+}
+
+// Firebase revoke certificate  
+api.revokeCertificate = async (id) => {
+  try {
+    await firebaseService.deleteCertificate(id)
+    return { data: { success: true } }
+  } catch (error) {
+    console.error('Failed to revoke certificate:', error)
+    throw error
+  }
 }
 
 // Export the apiClient for direct access

@@ -177,6 +177,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useNearStore } from '../stores/near'
 import { api } from '../services/api'
+import firebaseService from '../services/firebase'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -325,19 +326,34 @@ const revokeCertificate = async (certificate) => {
   }
 }
 
-const loadCourseStudents = (course) => {
-  // Get students who have certificates for this course
-  const studentsInCourse = certificates.value
-    .filter(cert => cert.courseId === course.id)
-    .map(cert => ({
+const loadCourseStudents = async (course) => {
+  try {
+    // Get students who have certificates for this course from Firebase
+    const courseCertificates = await firebaseService.getCertificatesByCourse(course.id)
+    const studentsInCourse = courseCertificates.map(cert => ({
       name: cert.recipientName || cert.studentName || cert.studentEmail,
       email: cert.studentEmail || cert.recipientName,
       certificateId: cert.id,
       issueDate: cert.issueDate || cert.issuedDate,
       status: cert.status || 'completed'
     }))
-  
-  courseStudents.value = studentsInCourse
+    
+    courseStudents.value = studentsInCourse
+  } catch (error) {
+    console.error('Failed to load course students:', error)
+    // Fallback to local certificates
+    const studentsInCourse = certificates.value
+      .filter(cert => cert.courseId === course.id)
+      .map(cert => ({
+        name: cert.recipientName || cert.studentName || cert.studentEmail,
+        email: cert.studentEmail || cert.recipientName,
+        certificateId: cert.id,
+        issueDate: cert.issueDate || cert.issuedDate,
+        status: cert.status || 'completed'
+      }))
+    
+    courseStudents.value = studentsInCourse
+  }
 }
 
 const cancelCourseEdit = () => {
