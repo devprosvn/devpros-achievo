@@ -221,15 +221,11 @@ Skills Acquired: ${certificate.skills?.join(', ') || 'N/A'}
         error: error.message
       }
     }
-  },
+  }
 
   // Mint NFT Certificate to IPFS
   async mintNFTCertificateToIPFS(nftData) {
     try {
-      if (!this.pinata) {
-        throw new Error('Pinata not initialized')
-      }
-
       // Create NFT metadata following NEP-171 standard
       const nftMetadata = {
         title: nftData.title || 'Achievement Certificate',
@@ -248,49 +244,37 @@ Skills Acquired: ${certificate.skills?.join(', ') || 'N/A'}
       const certificateFile = this.generateNFTCertificateFile(nftData)
       
       // Upload certificate file to IPFS
-      const fileUpload = await this.pinata.upload.file(certificateFile, {
-        metadata: {
-          name: `nft-certificate-${nftData.tokenId || Date.now()}.png`,
-          keyvalues: {
-            type: 'nft_certificate',
-            token_id: nftData.tokenId || '',
-            owner_id: nftData.ownerId || '',
-            issuer_id: nftData.issuerId || ''
-          }
-        }
-      })
+      const fileUpload = await this.uploadCertificateFile(nftData, certificateFile)
 
-      if (!fileUpload.IpfsHash) {
+      if (!fileUpload.success) {
         throw new Error(`File upload failed: ${fileUpload.error}`)
       }
 
       // Update metadata with file URL
-      nftMetadata.media = `https://gateway.pinata.cloud/ipfs/${fileUpload.IpfsHash}`
-      nftMetadata.media_hash = fileUpload.IpfsHash
+      nftMetadata.media = fileUpload.ipfsUrl
+      nftMetadata.media_hash = fileUpload.ipfsHash
 
       // Upload metadata to IPFS
-      const metadataUpload = await this.pinata.upload.json(nftMetadata, {
-        metadata: {
-          name: `nft-metadata-${nftData.tokenId || Date.now()}.json`,
-          keyvalues: {
-            type: 'nft_metadata',
-            token_id: nftData.tokenId || '',
-            owner_id: nftData.ownerId || ''
-          }
-        }
+      const metadataUpload = await this.uploadCertificateMetadata({
+        ...nftData,
+        title: nftMetadata.title,
+        recipientName: nftData.ownerId,
+        issuerName: nftData.issuerId,
+        issueDate: nftMetadata.issued_at,
+        status: 'verified'
       })
 
-      if (!metadataUpload.IpfsHash) {
+      if (!metadataUpload.success) {
         throw new Error(`Metadata upload failed: ${metadataUpload.error}`)
       }
 
       return {
         success: true,
         nftMetadata,
-        metadataHash: metadataUpload.IpfsHash,
-        metadataUrl: `https://gateway.pinata.cloud/ipfs/${metadataUpload.IpfsHash}`,
-        mediaHash: fileUpload.IpfsHash,
-        mediaUrl: `https://gateway.pinata.cloud/ipfs/${fileUpload.IpfsHash}`
+        metadataHash: metadataUpload.ipfsHash,
+        metadataUrl: metadataUpload.ipfsUrl,
+        mediaHash: fileUpload.ipfsHash,
+        mediaUrl: fileUpload.ipfsUrl
       }
     } catch (error) {
       console.error('Error minting NFT certificate to IPFS:', error)
@@ -299,7 +283,7 @@ Skills Acquired: ${certificate.skills?.join(', ') || 'N/A'}
         error: error.message
       }
     }
-  },
+  }
 
   // Generate NFT Certificate File (visual representation)
   generateNFTCertificateFile(nftData) {
@@ -327,12 +311,7 @@ IPFS: This certificate is stored on IPFS for decentralized access
 Contract: bernieio.testnet
     `
     
-    return new File([content], `nft-certificate-${nftData.tokenId || Date.now()}.txt`, {
-      type: 'text/plain'
-    })
-  }
-      }
-    }
+    return new Blob([content], { type: 'text/plain' })
   }
 }
 
