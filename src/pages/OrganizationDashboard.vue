@@ -33,7 +33,10 @@
           <div class="courses-section">
             <div class="section-header">
               <h2>Course Management</h2>
-              <button @click="showAddCourse = true" class="btn btn-primary">Add Course</button>
+              <div class="header-actions">
+                <button @click="seedMockData" class="btn btn-info">Seed Mock Data</button>
+                <button @click="showAddCourse = true" class="btn btn-primary">Add Course</button>
+              </div>
             </div>
             <div class="courses-grid">
               <div v-for="course in courses" :key="course.id" class="course-card">
@@ -241,7 +244,7 @@ const addCourse = async () => {
       console.log('Course created successfully:', response.data)
       alert('Khóa học đã được tạo thành công!')
     }
-    
+
     showAddCourse.value = false
     newCourse.value = { title: '', description: '', price: 0 }
     editingCourseId.value = null
@@ -337,7 +340,7 @@ const loadCourseStudents = async (course) => {
       issueDate: cert.issueDate || cert.issuedDate,
       status: cert.status || 'completed'
     }))
-    
+
     courseStudents.value = studentsInCourse
   } catch (error) {
     console.error('Failed to load course students:', error)
@@ -351,7 +354,7 @@ const loadCourseStudents = async (course) => {
         issueDate: cert.issueDate || cert.issuedDate,
         status: cert.status || 'completed'
       }))
-    
+
     courseStudents.value = studentsInCourse
   }
 }
@@ -381,6 +384,52 @@ const connectMeteorWallet = async () => {
   } catch (error) {
     console.error('Failed to connect Meteor Wallet:', error)
     alert('Kết nối Meteor Wallet thất bại: ' + error.message)
+  }
+}
+
+// Function to seed mock data (replace with actual implementation)
+const seedMockData = async () => {
+  try {
+    // Mock data for courses
+    const mockCourses = [
+      { title: 'NEAR 101', description: 'Introduction to NEAR Blockchain', price: 1.5 },
+      { title: 'Rust for NEAR', description: 'Smart contract development using Rust', price: 2.0 },
+      { title: 'Web3 Development', description: 'Building decentralized applications', price: 2.5 }
+    ]
+
+    // Mock data for certificates
+    const mockCertificates = [
+      { studentEmail: 'student1@example.com', title: 'NEAR 101 Certificate', courseId: '1' },
+      { studentEmail: 'student2@example.com', title: 'Rust for NEAR Certificate', courseId: '2' }
+    ]
+
+    // Seed courses
+    for (const course of mockCourses) {
+      await api.createCourse(course)
+      console.log('Mock course created:', course.title)
+    }
+
+    // Seed certificates
+    for (const certificate of mockCertificates) {
+      const certificateData = {
+        ...certificate,
+        organizationId: authStore.user?.id,
+        issuedDate: new Date().toISOString()
+      }
+      await api.issueCertificate(certificateData)
+      console.log('Mock certificate issued:', certificate.title)
+
+      // Also issue on NEAR blockchain
+      if (nearStore.isConnected) {
+        await nearStore.issueCertificate(certificateData)
+      }
+    }
+
+    await loadData() // Reload data to reflect changes
+    alert('Mock data seeded successfully!')
+  } catch (error) {
+    console.error('Failed to seed mock data:', error)
+    alert('Failed to seed mock data: ' + error.message)
   }
 }
 
@@ -467,6 +516,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .courses-section, .certificates-section {
