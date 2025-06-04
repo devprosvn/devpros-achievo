@@ -11,17 +11,18 @@ import {
   getDoc,
   query,
   where,
-  orderBy
+  orderBy,
+  setDoc
 } from 'firebase/firestore'
 
 // Firebase configuration từ environment variables
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  apiKey: "AIzaSyDGQ4YKHBOh9CJ8w7w7w7w7w7w7w7w7w7w",
+  authDomain: "achievo-certificate.firebaseapp.com",
+  projectId: "achievo-certificate",
+  storageBucket: "achievo-certificate.appspot.com",
+  messagingSenderId: "123456789012",
+  appId: "1:123456789012:web:abcdef123456789012345"
 }
 
 // Initialize Firebase
@@ -33,17 +34,26 @@ export const firebaseService = {
   async createCourse(courseData) {
     try {
       console.log('Firebase: Creating course with data:', courseData)
+      
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(courseData).forEach(key => {
+        if (courseData[key] !== undefined && courseData[key] !== null) {
+          cleanData[key] = courseData[key]
+        }
+      })
+      
       const coursesRef = collection(db, 'courses')
       const docRef = await addDoc(coursesRef, {
-        ...courseData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...cleanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       })
+      
       console.log('Firebase: Course created successfully with ID:', docRef.id)
-      return { id: docRef.id, ...courseData }
+      return { id: docRef.id, ...cleanData }
     } catch (error) {
       console.error('Firebase: Error creating course:', error)
-      console.error('Firebase: Error details:', error.message)
       throw error
     }
   },
@@ -51,8 +61,7 @@ export const firebaseService = {
   async getCourses() {
     try {
       const coursesRef = collection(db, 'courses')
-      const q = query(coursesRef, orderBy('createdAt', 'desc'))
-      const querySnapshot = await getDocs(q)
+      const querySnapshot = await getDocs(coursesRef)
       const courses = []
       querySnapshot.forEach((doc) => {
         courses.push({ id: doc.id, ...doc.data() })
@@ -66,12 +75,20 @@ export const firebaseService = {
 
   async updateCourse(courseId, courseData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(courseData).forEach(key => {
+        if (courseData[key] !== undefined && courseData[key] !== null) {
+          cleanData[key] = courseData[key]
+        }
+      })
+      
       const courseRef = doc(db, 'courses', courseId)
       await updateDoc(courseRef, {
-        ...courseData,
-        updatedAt: new Date()
+        ...cleanData,
+        updatedAt: new Date().toISOString()
       })
-      return { id: courseId, ...courseData }
+      return { id: courseId, ...cleanData }
     } catch (error) {
       console.error('Error updating course:', error)
       throw error
@@ -93,17 +110,26 @@ export const firebaseService = {
   async createCertificate(certificateData) {
     try {
       console.log('Firebase: Creating certificate with data:', certificateData)
+      
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(certificateData).forEach(key => {
+        if (certificateData[key] !== undefined && certificateData[key] !== null) {
+          cleanData[key] = certificateData[key]
+        }
+      })
+      
       const certificatesRef = collection(db, 'certificates')
       const docRef = await addDoc(certificatesRef, {
-        ...certificateData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...cleanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       })
+      
       console.log('Firebase: Certificate created successfully with ID:', docRef.id)
-      return { id: docRef.id, ...certificateData }
+      return { id: docRef.id, ...cleanData }
     } catch (error) {
       console.error('Firebase: Error creating certificate:', error)
-      console.error('Firebase: Error details:', error.message)
       throw error
     }
   },
@@ -111,8 +137,7 @@ export const firebaseService = {
   async getCertificates() {
     try {
       const certificatesRef = collection(db, 'certificates')
-      const q = query(certificatesRef, orderBy('createdAt', 'desc'))
-      const querySnapshot = await getDocs(q)
+      const querySnapshot = await getDocs(certificatesRef)
       const certificates = []
       querySnapshot.forEach((doc) => {
         certificates.push({ id: doc.id, ...doc.data() })
@@ -126,12 +151,20 @@ export const firebaseService = {
 
   async updateCertificate(certificateId, certificateData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(certificateData).forEach(key => {
+        if (certificateData[key] !== undefined && certificateData[key] !== null) {
+          cleanData[key] = certificateData[key]
+        }
+      })
+      
       const certificateRef = doc(db, 'certificates', certificateId)
       await updateDoc(certificateRef, {
-        ...certificateData,
-        updatedAt: new Date()
+        ...cleanData,
+        updatedAt: new Date().toISOString()
       })
-      return { id: certificateId, ...certificateData }
+      return { id: certificateId, ...cleanData }
     } catch (error) {
       console.error('Error updating certificate:', error)
       throw error
@@ -169,13 +202,21 @@ export const firebaseService = {
   // User Roles operations
   async createUserRole(roleData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(roleData).forEach(key => {
+        if (roleData[key] !== undefined && roleData[key] !== null) {
+          cleanData[key] = roleData[key]
+        }
+      })
+      
       const rolesRef = collection(db, 'user_roles')
       const docRef = await addDoc(rolesRef, {
-        ...roleData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...cleanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       })
-      return { id: docRef.id, ...roleData }
+      return { id: docRef.id, ...cleanData }
     } catch (error) {
       console.error('Error creating user role:', error)
       throw error
@@ -202,12 +243,20 @@ export const firebaseService = {
 
   async updateUserRole(roleId, roleData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(roleData).forEach(key => {
+        if (roleData[key] !== undefined && roleData[key] !== null) {
+          cleanData[key] = roleData[key]
+        }
+      })
+      
       const roleRef = doc(db, 'user_roles', roleId)
       await updateDoc(roleRef, {
-        ...roleData,
-        updatedAt: new Date()
+        ...cleanData,
+        updatedAt: new Date().toISOString()
       })
-      return { id: roleId, ...roleData }
+      return { id: roleId, ...cleanData }
     } catch (error) {
       console.error('Error updating user role:', error)
       throw error
@@ -217,8 +266,7 @@ export const firebaseService = {
   async getAllUserRoles() {
     try {
       const rolesRef = collection(db, 'user_roles')
-      const q = query(rolesRef, orderBy('createdAt', 'desc'))
-      const querySnapshot = await getDocs(q)
+      const querySnapshot = await getDocs(rolesRef)
       const roles = []
       querySnapshot.forEach((doc) => {
         roles.push({ id: doc.id, ...doc.data() })
@@ -233,13 +281,21 @@ export const firebaseService = {
   // NFT Certificates operations
   async createNFTCertificate(nftData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(nftData).forEach(key => {
+        if (nftData[key] !== undefined && nftData[key] !== null) {
+          cleanData[key] = nftData[key]
+        }
+      })
+      
       const nftRef = collection(db, 'nft_certificates')
       const docRef = await addDoc(nftRef, {
-        ...nftData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...cleanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       })
-      return { id: docRef.id, ...nftData }
+      return { id: docRef.id, ...cleanData }
     } catch (error) {
       console.error('Error creating NFT certificate:', error)
       throw error
@@ -249,8 +305,7 @@ export const firebaseService = {
   async getNFTCertificates() {
     try {
       const nftRef = collection(db, 'nft_certificates')
-      const q = query(nftRef, orderBy('createdAt', 'desc'))
-      const querySnapshot = await getDocs(q)
+      const querySnapshot = await getDocs(nftRef)
       const nftCertificates = []
       querySnapshot.forEach((doc) => {
         nftCertificates.push({ id: doc.id, ...doc.data() })
@@ -281,13 +336,21 @@ export const firebaseService = {
   // Organizations operations
   async createOrganization(orgData) {
     try {
+      // Clean data - remove undefined values
+      const cleanData = {}
+      Object.keys(orgData).forEach(key => {
+        if (orgData[key] !== undefined && orgData[key] !== null) {
+          cleanData[key] = orgData[key]
+        }
+      })
+      
       const orgsRef = collection(db, 'organizations')
       const docRef = await addDoc(orgsRef, {
-        ...orgData,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        ...cleanData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       })
-      return { id: docRef.id, ...orgData }
+      return { id: docRef.id, ...cleanData }
     } catch (error) {
       console.error('Error creating organization:', error)
       throw error
