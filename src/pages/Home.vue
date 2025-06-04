@@ -275,10 +275,30 @@ const handleDisconnect = async () => {
 }
 
 // Watch for connection status changes
-watch(isConnected, (newValue) => {
-  if (newValue) {
+watch(isConnected, async (newValue) => {
+  if (newValue && accountId.value) {
     console.log('Wallet connected successfully!')
     setIsWalletModalOpen(false)
+    
+    // Auto-login with auth store
+    const { useAuthStore } = await import('../stores/auth')
+    const authStore = useAuthStore()
+    
+    try {
+      const role = await authStore.loginWithWallet(accountId.value, {
+        name: accountId.value === 'bernieio.testnet' ? 'Admin User' : accountId.value,
+        wallet_address: accountId.value
+      })
+      
+      // Redirect based on role
+      if (role === 'admin' || accountId.value === 'bernieio.testnet') {
+        router.push('/organization-dashboard')
+      } else {
+        router.push('/student-dashboard')
+      }
+    } catch (error) {
+      console.error('Auto-login failed:', error)
+    }
   }
 })
 
@@ -293,45 +313,6 @@ onMounted(async () => {
 })
 
 // Removed test account login method - using only real wallet authentication
-
-const connectWallet = async (walletType) => {
-  try {
-    loading.value = true
-    console.log('Home component: Attempting to connect wallet...')
-
-    await nearStore.connectWallet(walletType)
-
-    // Wait a bit for state to update
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    if (nearStore.isConnected && nearStore.accountId) {
-      console.log('Home component: Wallet connected, account:', nearStore.accountId)
-
-      // Check if this is the admin account (bernieio.testnet)
-      const isAdmin = nearStore.accountId === 'bernieio.testnet'
-
-      // Login with auth store
-      await authStore.loginWithWallet(nearStore.accountId, {
-        name: isAdmin ? 'Admin User' : nearStore.accountId,
-        wallet_address: nearStore.accountId,
-        role: isAdmin ? 'admin' : 'user'
-      })
-
-      // Redirect based on whether user is admin or not
-      if (isAdmin) {
-        router.push('/organization-dashboard')
-      } else {
-        router.push('/student-dashboard')
-      }
-    }
-  } catch (error) {
-    console.error('Failed to connect wallet:', error)
-    alert('Wallet connection failed: ' + error.message)
-  } finally {
-    loading.value = false
-    showWalletModal.value = false
-  }
-}
 </script>
 
 <style scoped>

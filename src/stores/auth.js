@@ -92,13 +92,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   const loadUserRole = async (walletAddress) => {
     try {
-      // Check if user is contract owner (bernieio.testnet)
+      // Check if user is contract owner (bernieio.testnet) - always admin
       if (walletAddress === 'bernieio.testnet') {
         userRole.value = ROLES.ADMIN
+        console.log('Admin role assigned to bernieio.testnet')
         return ROLES.ADMIN
       }
 
-      // Try to get role from Firebase
+      // Try to get role from Firebase for other users
       const existingRole = await firebaseService.getUserRole(walletAddress)
       
       if (existingRole) {
@@ -120,6 +121,11 @@ export const useAuthStore = defineStore('auth', () => {
       }
     } catch (error) {
       console.error('Error loading user role:', error)
+      // For bernieio.testnet, still return admin even if Firebase fails
+      if (walletAddress === 'bernieio.testnet') {
+        userRole.value = ROLES.ADMIN
+        return ROLES.ADMIN
+      }
       userRole.value = ROLES.USER
       return ROLES.USER
     }
@@ -143,6 +149,8 @@ export const useAuthStore = defineStore('auth', () => {
       localStorage.setItem('wallet_address', walletAddress)
       localStorage.setItem('user_role', role)
       localStorage.setItem('user_type', userType.value)
+      
+      console.log(`User ${walletAddress} logged in with role: ${role}`)
       
       return role
     } catch (error) {
