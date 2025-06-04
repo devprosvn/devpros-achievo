@@ -335,8 +335,8 @@ api.processPayment = (paymentData) => createMockApiCall({ success: true, transac
 api.createCourse = async (courseData) => {
   try {
     const newCourse = {
-      title: courseData.title,
-      description: courseData.description,
+      title: courseData.title || '',
+      description: courseData.description || '',
       category: courseData.category || 'general',
       instructor: courseData.instructor || 'Organization',
       duration: courseData.duration || '4 weeks',
@@ -345,9 +345,15 @@ api.createCourse = async (courseData) => {
       priceUSD: (courseData.price * 3)?.toString() || '0',
       image: courseData.image || '/vue-js-logo.png',
       skills: courseData.skills || ['learning'],
-      organization_wallet: courseData.organization_wallet || 'achievo-org.testnet'
+      organization_wallet: courseData.organization_wallet || 'bernieio.testnet'
     }
-    const result = await firebaseService.createCourse(newCourse)
+    
+    // Filter out undefined values
+    const filteredData = Object.fromEntries(
+      Object.entries(newCourse).filter(([_, value]) => value !== undefined)
+    )
+    
+    const result = await firebaseService.createCourse(filteredData)
     return { data: result }
   } catch (error) {
     console.error('Failed to create course:', error)
@@ -359,18 +365,24 @@ api.createCourse = async (courseData) => {
 api.updateCourse = async (courseId, courseData) => {
   try {
     const updateData = {
-      title: courseData.title,
-      description: courseData.description,
-      priceNEAR: courseData.price?.toString(),
-      priceUSD: (courseData.price * 3)?.toString(),
-      category: courseData.category,
-      instructor: courseData.instructor,
-      duration: courseData.duration,
-      level: courseData.level,
-      image: courseData.image,
-      skills: courseData.skills
+      title: courseData.title || '',
+      description: courseData.description || '',
+      priceNEAR: courseData.price?.toString() || '0',
+      priceUSD: (courseData.price * 3)?.toString() || '0',
+      category: courseData.category || 'general',
+      instructor: courseData.instructor || 'Organization',
+      duration: courseData.duration || '4 weeks',
+      level: courseData.level || 'Beginner',
+      image: courseData.image || '/vue-js-logo.png',
+      skills: courseData.skills || ['learning']
     }
-    const result = await firebaseService.updateCourse(courseId, updateData)
+    
+    // Filter out undefined values
+    const filteredData = Object.fromEntries(
+      Object.entries(updateData).filter(([_, value]) => value !== undefined)
+    )
+    
+    const result = await firebaseService.updateCourse(courseId, filteredData)
     return { data: result }
   } catch (error) {
     console.error('Failed to update course:', error)
@@ -383,12 +395,12 @@ api.issueCertificate = async (certificateData) => {
   try {
     const newCertificate = {
       certificate_id: `CERT_${Date.now()}`,
-      title: certificateData.title,
-      recipientName: certificateData.studentEmail,
+      title: certificateData.title || 'Certificate',
+      recipientName: certificateData.studentEmail || 'Student',
       recipientWallet: 'student.testnet',
-      issuerName: 'Organization',
-      issuerWallet: 'achievo-org.testnet',
-      courseId: certificateData.courseId,
+      issuerName: certificateData.issuerName || 'Organization',
+      issuerWallet: certificateData.issuerWallet || 'bernieio.testnet',
+      courseId: certificateData.courseId || '',
       issueDate: certificateData.issuedDate || new Date().toISOString(),
       completionDate: new Date().toISOString(),
       grade: 'A',

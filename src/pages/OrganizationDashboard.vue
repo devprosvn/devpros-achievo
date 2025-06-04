@@ -233,14 +233,28 @@ const loadData = async () => {
 
 const addCourse = async () => {
   try {
+    // Ensure all required fields have valid values
+    const courseData = {
+      title: newCourse.value.title || '',
+      description: newCourse.value.description || '',
+      price: newCourse.value.price || 0,
+      category: newCourse.value.category || 'general',
+      instructor: newCourse.value.instructor || 'Organization',
+      duration: newCourse.value.duration || '4 weeks',
+      level: newCourse.value.level || 'Beginner',
+      image: newCourse.value.image || '/vue-js-logo.png',
+      skills: newCourse.value.skills || ['learning'],
+      organization_wallet: authStore.user?.wallet_address || 'bernieio.testnet'
+    }
+
     if (editingCourseId.value) {
       // Update existing course
-      const response = await api.updateCourse(editingCourseId.value, newCourse.value)
+      const response = await api.updateCourse(editingCourseId.value, courseData)
       console.log('Course updated successfully:', response.data)
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
-      const response = await api.createCourse(newCourse.value)
+      const response = await api.createCourse(courseData)
       console.log('Course created successfully:', response.data)
       alert('Khóa học đã được tạo thành công!')
     }
@@ -257,10 +271,29 @@ const addCourse = async () => {
 
 const issueCertificate = async () => {
   try {
+    // Ensure all required fields have valid values
     const certificateData = {
-      ...newCertificate.value,
-      organizationId: authStore.user?.id,
-      issuedDate: new Date().toISOString()
+      studentEmail: newCertificate.value.studentEmail || '',
+      title: newCertificate.value.title || 'Certificate',
+      courseId: newCertificate.value.courseId || '',
+      organizationId: authStore.user?.id || 'org_001',
+      issuedDate: new Date().toISOString(),
+      issuerWallet: authStore.user?.wallet_address || 'bernieio.testnet',
+      issuerName: authStore.user?.name || 'Organization'
+    }
+
+    // Validate required fields
+    if (!certificateData.studentEmail) {
+      alert('Vui lòng nhập email học viên')
+      return
+    }
+    if (!certificateData.title) {
+      alert('Vui lòng nhập tiêu đề chứng chỉ')
+      return
+    }
+    if (!certificateData.courseId) {
+      alert('Vui lòng chọn khóa học')
+      return
     }
 
     const response = await api.issueCertificate(certificateData)
