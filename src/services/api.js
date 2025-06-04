@@ -1,4 +1,5 @@
 import axios from 'axios'
+import PinataService from './pinata'
 
 const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
 
@@ -217,6 +218,64 @@ export const api = {
       },
     })
   },
+
+  // Download certificate
+  downloadCertificate: async (certificate) => {
+    try {
+      if (certificate.fileUrl) {
+        // Download from IPFS
+        const response = await fetch(certificate.fileUrl)
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `certificate_${certificate.id}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        return { success: true }
+      } else {
+        // Generate and download PDF
+        const blob = PinataService.generateCertificatePDF(certificate)
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `certificate_${certificate.id}.txt`
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+        return { success: true }
+      }
+    } catch (error) {
+      console.error('Download failed:', error)
+      return { success: false, error: error.message }
+    }
+  },
+
+  // Share certificate
+  shareCertificate: (certificate) => {
+    const shareUrl = certificate.ipfsUrl || `${window.location.origin}/certificate-validation?id=${certificate.id}`
+    const shareText = `Check out my certificate: ${certificate.title} - Issued by ${certificate.issuerName}`
+    
+    if (navigator.share) {
+      return navigator.share({
+        title: `Certificate: ${certificate.title}`,
+        text: shareText,
+        url: shareUrl
+      })
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${shareText} - ${shareUrl}`)
+      return Promise.resolve()
+    }
+  },
+
+  // Mint certificate to IPFS
+  mintCertificateToIPFS: (certificate) => {
+    return PinataService.mintCertificateToIPFS(certificate)
+  },
 }
 
 // Always use mock data until real backend is available
@@ -246,8 +305,8 @@ api.createCourse = (courseData) => {
   return createMockApiCall(newCourse)
 }
 
-// Mock issue certificate
-api.issueCertificate = (certificateData) => {
+// Mock issue certificate with IPFS minting
+api.issueCertificate = async (certificateData) => {
   const newCertificate = {
     id: `CERT_${Date.now()}`,
     certificate_id: `CERT_${Date.now()}`,
@@ -264,6 +323,21 @@ api.issueCertificate = (certificateData) => {
     status: 'verified',
     blockchainHash: `QmHash${Date.now()}`
   }
+
+  // Mint to IPFS using Pinata
+  try {
+    const ipfsResult = await PinataService.mintCertificateToIPFS(newCertificate)
+    if (ipfsResult.success) {
+      newCertificate.ipfsHash = ipfsResult.metadataHash
+      newCertificate.ipfsUrl = ipfsResult.metadataUrl
+      newCertificate.fileHash = ipfsResult.fileHash
+      newCertificate.fileUrl = ipfsResult.fileUrl
+      newCertificate.blockchainHash = ipfsResult.metadataHash
+    }
+  } catch (error) {
+    console.error('IPFS minting failed:', error)
+  }
+
   mockData.certificates.push(newCertificate)
   return createMockApiCall(newCertificate)
 }
