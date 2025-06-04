@@ -35,7 +35,12 @@
               <h2>Course Management</h2>
               <div class="header-actions">
                 <button @click="seedMockData" class="btn btn-info">Seed Mock Data</button>
-                <button @click="showAddCourse = true" class="btn btn-primary">Add Course</button>
+                <div class="flex gap-2">
+                  <button @click="showAddCourse = true" class="btn btn-primary">Add Course</button>
+                  <button @click="loadCourses" class="btn btn-secondary">
+                    🔄 Tải lại
+                  </button>
+                </div>
               </div>
             </div>
             <div class="courses-grid">
@@ -262,7 +267,7 @@ const logout = () => {
 const loadData = async () => {
   try {
     console.log('Loading dashboard data...')
-    
+
     const [coursesResponse, certificatesResponse] = await Promise.all([
       api.getCourses(),
       api.getCertificates()
@@ -275,7 +280,7 @@ const loadData = async () => {
     certificates.value = certificatesResponse.data || []
     certificatesIssued.value = certificates.value.length
     activeStudents.value = new Set(certificates.value.map(c => c.studentEmail)).size
-    
+
     console.log('Dashboard data loaded successfully')
   } catch (error) {
     console.error('Failed to load data:', error)
@@ -289,10 +294,10 @@ const loadData = async () => {
 
 const addCourse = async () => {
   if (isLoading.value) return
-  
+
   try {
     isLoading.value = true
-    
+
     // Validate required fields first
     if (!newCourse.value.title?.trim()) {
       alert('Vui lòng nhập tiêu đề khóa học')
@@ -306,7 +311,7 @@ const addCourse = async () => {
       alert('Vui lòng nhập giá khóa học hợp lệ')
       return
     }
-    
+
     // Ensure all required fields have valid values
     const courseData = {
       title: newCourse.value.title.trim(),
@@ -322,33 +327,63 @@ const addCourse = async () => {
     }
 
     let response
-    
+
     if (editingCourseId.value) {
       // Update existing course
       response = await api.updateCourse(editingCourseId.value, courseData)
       console.log('Course updated successfully:', response.data)
-      
+
       // Update local courses array
       const index = courses.value.findIndex(c => c.id === editingCourseId.value)
       if (index !== -1) {
         courses.value[index] = { ...courses.value[index], ...response.data }
       }
-      
+
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
+      console.log("🔵 Gửi dữ liệu khóa học:", newCourse.value)
+
+        // Validate dữ liệu trước khi gửi
+        if (!newCourse.value.title?.trim()) {
+          throw new Error('Tiêu đề khóa học là bắt buộc')
+        }
+        if (!newCourse.value.description?.trim()) {
+          throw new Error('Mô tả khóa học là bắt buộc')
+        }
+        if (!newCourse.value.price || newCourse.value.price <= 0) {
+          throw new Error('Giá khóa học phải lớn hơn 0')
+        }
       response = await api.createCourse(courseData)
-      console.log('Course created successfully:', response.data)
-      
-      // Add new course to local array
-      courses.value.push(response.data)
-      
+      console.log("🟢 Tạo khóa học thành công:", response)
+           // Cập nhật danh sách và đóng modal
+        if (response.data) {
+          showAddCourse.value = false
+          alert("✅ Khóa học đã được tạo thành công!")
+
+          // Reset form
+          newCourse.value = {
+            title: '',
+            description: '',
+            price: 0,
+            category: '',
+            instructor: '',
+            duration: '',
+            level: ''
+          }
+
+          // Tải lại danh sách khóa học từ Firestore
+          await loadCourses()
+        } else {
+          throw new Error('Không nhận được dữ liệu khóa học từ server')
+        }
+
       alert('Khóa học đã được tạo thành công!')
     }
-    
+
     // Reload courses data to reflect changes
     await loadData()
-    
+
     // Close modal and reset form after successful operation
     showAddCourse.value = false
     newCourse.value = {
@@ -363,7 +398,7 @@ const addCourse = async () => {
       skills: []
     }
     editingCourseId.value = null
-    
+
   } catch (error) {
     console.error('Failed to save course:', error)
     alert('Có lỗi khi lưu khóa học: ' + error.message)
@@ -374,10 +409,10 @@ const addCourse = async () => {
 
 const issueCertificate = async () => {
   if (isLoading.value) return
-  
+
   try {
     isLoading.value = true
-    
+
     // Validate required fields first
     if (!newCertificate.value.studentEmail?.trim()) {
       alert('Vui lòng nhập email học viên')
@@ -391,7 +426,7 @@ const issueCertificate = async () => {
       alert('Vui lòng chọn khóa học')
       return
     }
-    
+
     // Ensure all required fields have valid values
     const certificateData = {
       studentEmail: newCertificate.value.studentEmail.trim(),
@@ -422,11 +457,11 @@ const issueCertificate = async () => {
 
     // Reload dashboard data
     await loadData()
-    
+
     // Close modal and reset form
     showIssueCertificate.value = false
     newCertificate.value = { studentEmail: '', title: '', courseId: '' }
-    
+
     alert('Chứng chỉ đã được cấp thành công!')
   } catch (error) {
     console.error('Failed to issue certificate:', error)
@@ -571,6 +606,17 @@ const connectMeteorWallet = async () => {
     alert('Kết nối Meteor Wallet thất bại: ' + error.message)
   }
 }
+const loadCourses = async () => {
+      try {
+        console.log("📚 Đang tải danh sách khóa học...")
+        const response = await api.getCourses()
+        courses.value = response.data || []
+        console.log("✅ Đã tải được", courses.value.length, "khóa học")
+      } catch (error) {
+        console.error('❌ Lỗi khi tải khóa học:', error)
+        courses.value = []
+      }
+    }
 
 // Function to seed mock data (replace with actual implementation)
 const seedMockData = async () => {
