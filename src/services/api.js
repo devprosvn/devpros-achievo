@@ -173,7 +173,34 @@ export const api = {
   issueCertificate: (certificateData) => apiClient.post('/api/certificates/issue', certificateData),
   updateCertificate: (id, data) => apiClient.put(`/api/certificates/${id}`, data),
   revokeCertificate: (id) => apiClient.delete(`/api/certificates/${id}`),
-  validateCertificate: (certificateId) => apiClient.post('/api/validation/certificate', { certificateId }),
+  validateCertificate: (certificateId) => {
+    // Tìm certificate trong mock data
+    const certificate = mockData.certificates.find(cert => 
+      cert.id === certificateId || 
+      cert.certificate_id === certificateId ||
+      cert.blockchainHash === certificateId
+    )
+    
+    if (certificate) {
+      return createMockApiCall({
+        isValid: certificate.status !== 'revoked',
+        certificate: {
+          id: certificate.id,
+          title: certificate.title,
+          recipientName: certificate.recipientName,
+          issuerName: certificate.issuerName,
+          issueDate: certificate.issueDate,
+          status: certificate.status || 'verified',
+          blockchainHash: certificate.blockchainHash
+        }
+      })
+    } else {
+      return createMockApiCall({
+        isValid: false,
+        message: 'Certificate not found'
+      })
+    }
+  },
 
   // Course endpoints
   getCourses: () => apiClient.get('/api/courses'),

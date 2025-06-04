@@ -171,11 +171,16 @@ const validateCertificate = async () => {
 
 const validateOnBlockchain = async () => {
   try {
-    if (!nearStore.contract) {
-      await nearStore.initNear()
-    }
-
-    if (nearStore.contract) {
+    // Khởi tạo NEAR nếu chưa có
+    await nearStore.initNear()
+    
+    // Thử validate bằng NEAR store
+    const validationResponse = await nearStore.validateCertificate(certificateId.value)
+    
+    if (validationResponse && validationResponse.isValid) {
+      validationResult.value = validationResponse
+    } else {
+      // Nếu không tìm thấy trên blockchain, thử tìm trong mock data
       const certificate = await nearStore.getCertificate(certificateId.value)
       
       if (certificate) {
@@ -196,11 +201,6 @@ const validateOnBlockchain = async () => {
           isValid: false,
           message: 'Certificate not found on blockchain'
         }
-      }
-    } else {
-      validationResult.value = {
-        isValid: false,
-        message: 'Unable to connect to blockchain for verification'
       }
     }
   } catch (error) {
