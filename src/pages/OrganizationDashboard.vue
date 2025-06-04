@@ -40,8 +40,8 @@
                 <h3>{{ course.title }}</h3>
                 <p>{{ course.description }}</p>
                 <div class="course-actions">
-                  <button @click="editCourse(course)" class="btn btn-secondary">Edit</button>
-                  <button @click="viewStudents(course)" class="btn btn-info">Students</button>
+                  <button @click="editCourse(course)" class="btn btn-secondary" :disabled="false">Edit</button>
+                  <button @click="viewStudents(course)" class="btn btn-info" :disabled="false">Students</button>
                 </div>
               </div>
             </div>
@@ -61,8 +61,8 @@
                   <p>Issued: {{ formatDate(certificate.issuedDate) }}</p>
                 </div>
                 <div class="certificate-actions">
-                  <button @click="viewCertificate(certificate)" class="btn btn-info">View</button>
-                  <button @click="revokeCertificate(certificate)" class="btn btn-danger">Revoke</button>
+                  <button @click="viewCertificate(certificate)" class="btn btn-info" :disabled="false">View</button>
+                  <button @click="revokeCertificate(certificate)" class="btn btn-danger" :disabled="false">Revoke</button>
                 </div>
               </div>
             </div>
@@ -484,3 +484,4 @@ onMounted(() => {
   margin-top: 1.5rem;
 }
 </style>
+</replit_final_file>
