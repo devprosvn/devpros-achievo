@@ -75,7 +75,7 @@
     </main>
 
     <!-- Add Course Modal -->
-    <div v-if="showAddCourse" class="modal-overlay" @click="showAddCourse = false">
+    <div v-if="showAddCourse" class="modal-overlay" @click="closeModal('course')">
       <div class="modal" @click.stop>
         <h3>{{ editingCourseId ? 'Edit Course' : 'Add New Course' }}</h3>
         <form @submit.prevent="addCourse">
@@ -102,7 +102,7 @@
     </div>
 
     <!-- Issue Certificate Modal -->
-    <div v-if="showIssueCertificate" class="modal-overlay" @click="showIssueCertificate = false">
+    <div v-if="showIssueCertificate" class="modal-overlay" @click="closeModal('certificate')">
       <div class="modal" @click.stop>
         <h3>Issue Certificate</h3>
         <form @submit.prevent="issueCertificate">
@@ -124,7 +124,7 @@
             </select>
           </div>
           <div class="form-actions">
-            <button type="button" @click="showIssueCertificate = false" class="btn btn-secondary">Cancel</button>
+            <button type="button" @click="closeModal('certificate')" class="btn btn-secondary">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isLoading">
               {{ isLoading ? 'Đang xử lý...' : 'Issue Certificate' }}
             </button>
@@ -134,7 +134,7 @@
     </div>
 
     <!-- Students List Modal -->
-    <div v-if="showStudentsList" class="modal-overlay" @click="showStudentsList = false">
+    <div v-if="showStudentsList" class="modal-overlay" @click="closeModal('students')">
       <div class="modal large-modal" @click.stop>
         <h3>Students in {{ selectedCourse?.title }}</h3>
         <div v-if="courseStudents.length === 0" class="no-students">
@@ -171,7 +171,7 @@
           </table>
         </div>
         <div class="form-actions">
-          <button @click="showStudentsList = false" class="btn btn-secondary">Đóng</button>
+          <button @click="closeModal('students')" class="btn btn-secondary">Đóng</button>
         </div>
       </div>
     </div>
@@ -254,11 +254,25 @@ const addCourse = async () => {
   try {
     isLoading.value = true
     
+    // Validate required fields first
+    if (!newCourse.value.title?.trim()) {
+      alert('Vui lòng nhập tiêu đề khóa học')
+      return
+    }
+    if (!newCourse.value.description?.trim()) {
+      alert('Vui lòng nhập mô tả khóa học')
+      return
+    }
+    if (!newCourse.value.price || newCourse.value.price <= 0) {
+      alert('Vui lòng nhập giá khóa học hợp lệ')
+      return
+    }
+    
     // Ensure all required fields have valid values
     const courseData = {
-      title: newCourse.value.title || '',
-      description: newCourse.value.description || '',
-      price: newCourse.value.price || 0,
+      title: newCourse.value.title.trim(),
+      description: newCourse.value.description.trim(),
+      price: parseFloat(newCourse.value.price),
       category: newCourse.value.category || 'general',
       instructor: newCourse.value.instructor || 'Organization',
       duration: newCourse.value.duration || '4 weeks',
@@ -268,33 +282,36 @@ const addCourse = async () => {
       organization_wallet: authStore.user?.wallet_address || 'bernieio.testnet'
     }
 
+    let response
+    
     if (editingCourseId.value) {
       // Update existing course
-      const response = await api.updateCourse(editingCourseId.value, courseData)
+      response = await api.updateCourse(editingCourseId.value, courseData)
       console.log('Course updated successfully:', response.data)
       
-      // Close modal and reset form first
-      showAddCourse.value = false
-      newCourse.value = { title: '', description: '', price: 0 }
-      editingCourseId.value = null
+      // Update local courses array
+      const index = courses.value.findIndex(c => c.id === editingCourseId.value)
+      if (index !== -1) {
+        courses.value[index] = { ...courses.value[index], ...response.data }
+      }
       
-      // Then reload data and show success message
-      await loadData()
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
-      const response = await api.createCourse(courseData)
+      response = await api.createCourse(courseData)
       console.log('Course created successfully:', response.data)
       
-      // Close modal and reset form first
-      showAddCourse.value = false
-      newCourse.value = { title: '', description: '', price: 0 }
-      editingCourseId.value = null
+      // Add new course to local array
+      courses.value.push(response.data)
       
-      // Then reload data and show success message
-      await loadData()
       alert('Khóa học đã được tạo thành công!')
     }
+    
+    // Close modal and reset form after successful operation
+    showAddCourse.value = false
+    newCourse.value = { title: '', description: '', price: 0 }
+    editingCourseId.value = null
+    
   } catch (error) {
     console.error('Failed to save course:', error)
     alert('Có lỗi khi lưu khóa học: ' + error.message)
@@ -309,42 +326,52 @@ const issueCertificate = async () => {
   try {
     isLoading.value = true
     
+    // Validate required fields first
+    if (!newCertificate.value.studentEmail?.trim()) {
+      alert('Vui lòng nhập email học viên')
+      return
+    }
+    if (!newCertificate.value.title?.trim()) {
+      alert('Vui lòng nhập tiêu đề chứng chỉ')
+      return
+    }
+    if (!newCertificate.value.courseId) {
+      alert('Vui lòng chọn khóa học')
+      return
+    }
+    
     // Ensure all required fields have valid values
     const certificateData = {
-      studentEmail: newCertificate.value.studentEmail || '',
-      title: newCertificate.value.title || 'Certificate',
-      courseId: newCertificate.value.courseId || '',
+      studentEmail: newCertificate.value.studentEmail.trim(),
+      title: newCertificate.value.title.trim(),
+      courseId: newCertificate.value.courseId,
       organizationId: authStore.user?.id || 'org_001',
       issuedDate: new Date().toISOString(),
       issuerWallet: authStore.user?.wallet_address || 'bernieio.testnet',
       issuerName: authStore.user?.name || 'Organization'
     }
 
-    // Validate required fields
-    if (!certificateData.studentEmail) {
-      alert('Vui lòng nhập email học viên')
-      return
-    }
-    if (!certificateData.title) {
-      alert('Vui lòng nhập tiêu đề chứng chỉ')
-      return
-    }
-    if (!certificateData.courseId) {
-      alert('Vui lòng chọn khóa học')
-      return
-    }
-
     const response = await api.issueCertificate(certificateData)
     console.log('Certificate issued successfully:', response.data)
 
+    // Add new certificate to local array
+    certificates.value.push(response.data)
+    certificatesIssued.value = certificates.value.length
+    activeStudents.value = new Set(certificates.value.map(c => c.studentEmail)).size
+
     // Also issue on NEAR blockchain
     if (nearStore.isConnected) {
-      await nearStore.issueCertificate(certificateData)
+      try {
+        await nearStore.issueCertificate(certificateData)
+      } catch (nearError) {
+        console.warn('NEAR blockchain issue failed:', nearError)
+      }
     }
 
+    // Close modal and reset form
     showIssueCertificate.value = false
     newCertificate.value = { studentEmail: '', title: '', courseId: '' }
-    await loadData()
+    
     alert('Chứng chỉ đã được cấp thành công!')
   } catch (error) {
     console.error('Failed to issue certificate:', error)
@@ -436,6 +463,20 @@ const cancelCourseEdit = () => {
   showAddCourse.value = false
   newCourse.value = { title: '', description: '', price: 0 }
   editingCourseId.value = null
+}
+
+// Close modals when clicking outside
+const closeModal = (modalName) => {
+  if (modalName === 'course') {
+    cancelCourseEdit()
+  } else if (modalName === 'certificate') {
+    showIssueCertificate.value = false
+    newCertificate.value = { studentEmail: '', title: '', courseId: '' }
+  } else if (modalName === 'students') {
+    showStudentsList.value = false
+    selectedCourse.value = null
+    courseStudents.value = []
+  }
 }
 
 const viewCertificateFromStudent = (certificateId) => {
