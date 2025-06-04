@@ -70,11 +70,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const getUserTypeFromWallet = (walletAddress) => {
-    if (walletAddress === 'achievo.testnet') return 'admin'
-    if (walletAddress === 'achievo-admin.testnet') return 'superuser'
-    if (walletAddress === 'achievo-org.testnet') return 'organization'
-    if (walletAddress === 'achievo-student.testnet') return 'student'
-    return 'student' // default
+    if (walletAddress === 'bernieio.testnet') return 'admin'
+    return 'user' // default for all other accounts
   }
 
   const getRoleFromWallet = (walletAddress) => {

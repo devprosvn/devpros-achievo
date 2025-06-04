@@ -79,7 +79,7 @@ const mockData = {
       priceUSD: '15',
       image: '/vue-js-logo.png',
       skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
-      organization_wallet: 'achievo-org.testnet'
+      organization_wallet: 'bernieio.testnet'
     },
     {
       id: 'WEB3_DEV',
@@ -93,7 +93,7 @@ const mockData = {
       priceUSD: '30',
       image: '/ui-ux-design-banner.png',
       skills: ['web3', 'smart_contracts', 'dapp_development', 'near_protocol'],
-      organization_wallet: 'achievo-org.testnet'
+      organization_wallet: 'bernieio.testnet'
     },
     {
       id: 'DEFI_BASICS',
@@ -107,7 +107,7 @@ const mockData = {
       priceUSD: '21',
       image: '/digital-marketing-banner.png',
       skills: ['defi', 'liquidity_pools', 'yield_farming', 'tokenomics'],
-      organization_wallet: 'achievo-org.testnet'
+      organization_wallet: 'bernieio.testnet'
     }
   ],
 

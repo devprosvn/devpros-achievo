@@ -29,7 +29,7 @@
                 Learn More
               </button>
             </div>
-            
+
             <!-- Show when wallet is connected -->
             <div v-else class="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div class="text-center">
@@ -91,7 +91,7 @@
           <div class="feature-card">
             <div class="feature-icon">
               <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 013.138-3.138z" />
               </svg>
             </div>
             <h3 class="text-xl font-bold mb-3 text-gray-900">Dynamic NFT Certificates</h3>
@@ -255,7 +255,7 @@ const handleWalletConnect = async (walletType) => {
     console.log(`Component: Attempting to connect to ${walletType || 'default modal'}`)
     await nearStore.connectWallet(walletType)
     console.log('Component: Wallet connection process initiated/completed.')
-    
+
     // Close modal after successful connection
     setIsWalletModalOpen(false)
   } catch (error) {
@@ -291,6 +291,47 @@ onMounted(async () => {
     console.error('Home component: NEAR initialization failed:', error)
   }
 })
+
+// Removed test account login method - using only real wallet authentication
+
+const connectWallet = async (walletType) => {
+  try {
+    loading.value = true
+    console.log('Home component: Attempting to connect wallet...')
+
+    await nearStore.connectWallet(walletType)
+
+    // Wait a bit for state to update
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    if (nearStore.isConnected && nearStore.accountId) {
+      console.log('Home component: Wallet connected, account:', nearStore.accountId)
+
+      // Check if this is the admin account (bernieio.testnet)
+      const isAdmin = nearStore.accountId === 'bernieio.testnet'
+
+      // Login with auth store
+      await authStore.loginWithWallet(nearStore.accountId, {
+        name: isAdmin ? 'Admin User' : nearStore.accountId,
+        wallet_address: nearStore.accountId,
+        role: isAdmin ? 'admin' : 'user'
+      })
+
+      // Redirect based on whether user is admin or not
+      if (isAdmin) {
+        router.push('/organization-dashboard')
+      } else {
+        router.push('/student-dashboard')
+      }
+    }
+  } catch (error) {
+    console.error('Failed to connect wallet:', error)
+    alert('Wallet connection failed: ' + error.message)
+  } finally {
+    loading.value = false
+    showWalletModal.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -420,5 +461,24 @@ onMounted(async () => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+.wallet-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.wallet-section h3 {
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 1.2rem;
+}
+
+.wallet-section p {
+  color: #6c757d;
+  margin-bottom: 0;
 }
 </style>
