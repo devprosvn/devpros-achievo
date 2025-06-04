@@ -43,8 +43,8 @@
                 <h3>{{ course.title }}</h3>
                 <p>{{ course.description }}</p>
                 <div class="course-actions">
-                  <button @click="editCourse(course)" class="btn btn-secondary" :disabled="false">Edit</button>
-                  <button @click="viewStudents(course)" class="btn btn-info" :disabled="false">Students</button>
+                  <button @click="editCourse(course)" class="btn btn-secondary" :disabled="isLoading">Edit</button>
+                  <button @click="viewStudents(course)" class="btn btn-info" :disabled="isLoading">Students</button>
                 </div>
               </div>
             </div>
@@ -64,8 +64,8 @@
                   <p>Issued: {{ formatDate(certificate.issuedDate) }}</p>
                 </div>
                 <div class="certificate-actions">
-                  <button @click="viewCertificate(certificate)" class="btn btn-info" :disabled="false">View</button>
-                  <button @click="revokeCertificate(certificate)" class="btn btn-danger" :disabled="false">Revoke</button>
+                  <button @click="viewCertificate(certificate)" class="btn btn-info" :disabled="isLoading">View</button>
+                  <button @click="revokeCertificate(certificate)" class="btn btn-danger" :disabled="isLoading">Revoke</button>
                 </div>
               </div>
             </div>
@@ -93,7 +93,9 @@
           </div>
           <div class="form-actions">
             <button type="button" @click="cancelCourseEdit" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary">{{ editingCourseId ? 'Update Course' : 'Add Course' }}</button>
+            <button type="submit" class="btn btn-primary" :disabled="isLoading">
+              {{ isLoading ? 'Đang xử lý...' : (editingCourseId ? 'Update Course' : 'Add Course') }}
+            </button>
           </div>
         </form>
       </div>
@@ -123,7 +125,9 @@
           </div>
           <div class="form-actions">
             <button type="button" @click="showIssueCertificate = false" class="btn btn-secondary">Cancel</button>
-            <button type="submit" class="btn btn-primary">Issue Certificate</button>
+            <button type="submit" class="btn btn-primary" :disabled="isLoading">
+              {{ isLoading ? 'Đang xử lý...' : 'Issue Certificate' }}
+            </button>
           </div>
         </form>
       </div>
@@ -192,6 +196,7 @@ const certificatesIssued = ref(0)
 const activeStudents = ref(0)
 const showAddCourse = ref(false)
 const showIssueCertificate = ref(false)
+const isLoading = ref(false)
 
 const newCourse = ref({
   title: '',
@@ -232,7 +237,11 @@ const loadData = async () => {
 }
 
 const addCourse = async () => {
+  if (isLoading.value) return
+  
   try {
+    isLoading.value = true
+    
     // Ensure all required fields have valid values
     const courseData = {
       title: newCourse.value.title || '',
@@ -266,11 +275,17 @@ const addCourse = async () => {
   } catch (error) {
     console.error('Failed to save course:', error)
     alert('Có lỗi khi lưu khóa học: ' + error.message)
+  } finally {
+    isLoading.value = false
   }
 }
 
 const issueCertificate = async () => {
+  if (isLoading.value) return
+  
   try {
+    isLoading.value = true
+    
     // Ensure all required fields have valid values
     const certificateData = {
       studentEmail: newCertificate.value.studentEmail || '',
@@ -311,6 +326,8 @@ const issueCertificate = async () => {
   } catch (error) {
     console.error('Failed to issue certificate:', error)
     alert('Có lỗi khi cấp chứng chỉ: ' + error.message)
+  } finally {
+    isLoading.value = false
   }
 }
 
