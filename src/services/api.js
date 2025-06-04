@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:3000'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -30,117 +30,62 @@ apiClient.interceptors.response.use(
   }
 )
 
-// Mock data for development with NEAR testnet accounts
+// Mock data for development
 const mockData = {
-  // Sample accounts for testing
-  accounts: {
-    admin: {
-      wallet_address: "achievo.testnet",
-      name: "Achievo Admin",
-      email: "admin@achievo.io",
-      role: "admin",
-      type: "admin"
-    },
-    superuser: {
-      wallet_address: "achievo-admin.testnet",
-      name: "Super Administrator", 
-      email: "superuser@achievo.io",
-      role: "superuser",
-      type: "superuser"
-    },
-    student: {
-      wallet_address: "achievo-student.testnet",
-      name: "John Student",
-      email: "student@achievo.io",
-      type: "individual",
-      role: "learner"
-    },
-    organization: {
-      wallet_address: "achievo-org.testnet",
-      name: "Achievo Education Institute",
-      email: "contact@achievo-edu.org",
-      type: "organization",
-      verified: true
-    }
-  },
-  
   courses: [
     {
-      id: 'BLOCKCHAIN_101',
-      title: 'Introduction to Blockchain',
-      description: 'Learn the fundamentals of blockchain technology',
-      category: 'blockchain',
-      instructor: 'Achievo Education Institute',
-      duration: '8 weeks',
+      id: 1,
+      title: 'Vue.js Complete Course',
+      description: 'Learn Vue.js from beginner to advanced level',
+      category: 'programming',
+      instructor: 'John Doe',
+      duration: '40 hours',
       level: 'Beginner',
       priceNEAR: '5',
       priceUSD: '15',
-      image: '/vue-js-logo.png',
-      skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
-      organization_wallet: 'achievo-org.testnet'
+      image: '/vue-js-logo.png'
     },
     {
-      id: 'WEB3_DEV',
-      title: 'Web3 Development',
-      description: 'Build decentralized applications on NEAR Protocol',
-      category: 'development',
-      instructor: 'Achievo Education Institute',
-      duration: '12 weeks',
+      id: 2,
+      title: 'UI/UX Design Fundamentals',
+      description: 'Master the basics of user interface and user experience design',
+      category: 'design',
+      instructor: 'Jane Smith',
+      duration: '30 hours',
       level: 'Intermediate',
-      priceNEAR: '10',
-      priceUSD: '30',
-      image: '/ui-ux-design-banner.png',
-      skills: ['web3', 'smart_contracts', 'dapp_development', 'near_protocol'],
-      organization_wallet: 'achievo-org.testnet'
+      priceNEAR: '8',
+      priceUSD: '24',
+      image: '/ui-ux-design-banner.png'
     },
     {
-      id: 'DEFI_BASICS',
-      title: 'DeFi Fundamentals',
-      description: 'Understanding Decentralized Finance protocols',
-      category: 'finance',
-      instructor: 'Achievo Education Institute',
-      duration: '6 weeks',
+      id: 3,
+      title: 'Digital Marketing Strategy',
+      description: 'Learn effective digital marketing strategies for modern businesses',
+      category: 'marketing',
+      instructor: 'Mike Johnson',
+      duration: '25 hours',
       level: 'Beginner',
-      priceNEAR: '7',
-      priceUSD: '21',
-      image: '/digital-marketing-banner.png',
-      skills: ['defi', 'liquidity_pools', 'yield_farming', 'tokenomics'],
-      organization_wallet: 'achievo-org.testnet'
+      priceNEAR: '6',
+      priceUSD: '18',
+      image: '/digital-marketing-banner.png'
     }
   ],
-  
   certificates: [
     {
-      id: 'CERT_001',
-      certificate_id: 'CERT_001',
-      title: 'Introduction to Blockchain',
+      id: 'cert_1',
+      title: 'Vue.js Fundamentals',
       recipientName: 'John Student',
-      recipientWallet: 'achievo-student.testnet',
-      issuerName: 'Achievo Education Institute',
-      issuerWallet: 'achievo-org.testnet',
-      courseId: 'BLOCKCHAIN_101',
-      issueDate: '2024-02-15',
-      completionDate: '2024-02-15',
-      grade: 'A',
-      skills: ['blockchain', 'cryptocurrency', 'smart_contracts'],
-      status: 'verified',
-      blockchainHash: 'QmSampleHash123456789'
+      issuerName: 'Tech Academy',
+      issueDate: '2024-01-15',
+      status: 'verified'
     }
   ],
-  
   rewards: [
     {
-      id: 'REWARD_001',
-      reward_id: 'REWARD_001',
-      title: 'Completion Bonus',
-      description: 'Completion bonus for Blockchain 101 course',
-      recipientWallet: 'achievo-student.testnet',
-      certificateId: 'CERT_001',
-      rewardType: 'completion_bonus',
-      amount: '10',
-      currency: 'NEAR',
-      grantedAt: '2024-02-16',
-      status: 'granted'
+      id: 1,
+      title: 'Early Bird',
+      description: 'Completed first course within 24 hours',
+      points: 100
     }
   ]
 }
