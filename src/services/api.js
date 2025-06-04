@@ -309,11 +309,14 @@ export const api = {
 // Firebase-backed get courses
 api.getCourses = async () => {
   try {
+    console.log('API: Getting courses from Firebase...')
     const courses = await firebaseService.getCourses()
-    return { data: courses }
+    console.log('API: Courses retrieved:', courses)
+    return { data: courses || [] }
   } catch (error) {
     console.error('Failed to get courses:', error)
     // Fallback to mock data if Firebase fails
+    console.log('API: Falling back to mock data')
     return createMockApiCall(mockData.courses)
   }
 }

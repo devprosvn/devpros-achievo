@@ -222,17 +222,29 @@ const logout = () => {
 
 const loadData = async () => {
   try {
+    console.log('Loading dashboard data...')
+    
     const [coursesResponse, certificatesResponse] = await Promise.all([
       api.getCourses(),
       api.getCertificates()
     ])
 
-    courses.value = coursesResponse.data
-    certificates.value = certificatesResponse.data
+    console.log('Courses loaded:', coursesResponse.data)
+    console.log('Certificates loaded:', certificatesResponse.data)
+
+    courses.value = coursesResponse.data || []
+    certificates.value = certificatesResponse.data || []
     certificatesIssued.value = certificates.value.length
     activeStudents.value = new Set(certificates.value.map(c => c.studentEmail)).size
+    
+    console.log('Dashboard data loaded successfully')
   } catch (error) {
     console.error('Failed to load data:', error)
+    // Set default values in case of error
+    courses.value = []
+    certificates.value = []
+    certificatesIssued.value = 0
+    activeStudents.value = 0
   }
 }
 
@@ -260,18 +272,29 @@ const addCourse = async () => {
       // Update existing course
       const response = await api.updateCourse(editingCourseId.value, courseData)
       console.log('Course updated successfully:', response.data)
+      
+      // Close modal and reset form first
+      showAddCourse.value = false
+      newCourse.value = { title: '', description: '', price: 0 }
+      editingCourseId.value = null
+      
+      // Then reload data and show success message
+      await loadData()
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
       const response = await api.createCourse(courseData)
       console.log('Course created successfully:', response.data)
+      
+      // Close modal and reset form first
+      showAddCourse.value = false
+      newCourse.value = { title: '', description: '', price: 0 }
+      editingCourseId.value = null
+      
+      // Then reload data and show success message
+      await loadData()
       alert('Khóa học đã được tạo thành công!')
     }
-
-    showAddCourse.value = false
-    newCourse.value = { title: '', description: '', price: 0 }
-    editingCourseId.value = null
-    await loadData()
   } catch (error) {
     console.error('Failed to save course:', error)
     alert('Có lỗi khi lưu khóa học: ' + error.message)
