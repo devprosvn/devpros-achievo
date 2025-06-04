@@ -339,6 +339,17 @@ api.createCourse = async (courseData) => {
   try {
     console.log('API: Creating course with data:', courseData)
     
+    // Basic validation before sending to Firebase
+    if (!courseData.title?.trim()) {
+      throw new Error('Tiêu đề khóa học là bắt buộc')
+    }
+    if (!courseData.description?.trim()) {
+      throw new Error('Mô tả khóa học là bắt buộc')
+    }
+    if (!courseData.price || courseData.price <= 0) {
+      throw new Error('Giá khóa học phải lớn hơn 0')
+    }
+    
     // Let Firebase service handle all the data cleaning and validation
     const result = await firebaseService.createCourse(courseData)
     
@@ -346,6 +357,15 @@ api.createCourse = async (courseData) => {
     return { data: result }
   } catch (error) {
     console.error('API: Failed to create course:', error)
+    
+    // Provide more specific error messages
+    if (error.message.includes('Missing or insufficient permissions')) {
+      throw new Error('Không có quyền tạo khóa học. Vui lòng kiểm tra cấu hình Firestore.')
+    }
+    if (error.message.includes('invalid data')) {
+      throw new Error('Dữ liệu khóa học không hợp lệ. Vui lòng kiểm tra các trường thông tin.')
+    }
+    
     throw error
   }
 }
@@ -355,6 +375,16 @@ api.updateCourse = async (courseId, courseData) => {
   try {
     console.log('API: Updating course with data:', courseData)
     
+    // Validate required fields before sending to Firebase
+    if (!courseId) {
+      throw new Error('Course ID is required for update')
+    }
+    
+    // Ensure we have some data to update
+    if (!courseData || Object.keys(courseData).length === 0) {
+      throw new Error('No course data provided for update')
+    }
+    
     // Let Firebase service handle all the data cleaning and validation
     const result = await firebaseService.updateCourse(courseId, courseData)
     
@@ -362,6 +392,15 @@ api.updateCourse = async (courseId, courseData) => {
     return { data: result }
   } catch (error) {
     console.error('API: Failed to update course:', error)
+    
+    // Provide more specific error messages
+    if (error.message.includes('Missing or insufficient permissions')) {
+      throw new Error('Không có quyền cập nhật khóa học. Vui lòng kiểm tra cấu hình Firestore.')
+    }
+    if (error.message.includes('invalid data')) {
+      throw new Error('Dữ liệu khóa học không hợp lệ. Vui lòng kiểm tra các trường thông tin.')
+    }
+    
     throw error
   }
 }

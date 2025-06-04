@@ -53,23 +53,32 @@ export const firebaseService = {
     try {
       console.log('Firebase: Creating course with data:', courseData)
 
-      // Clean data - remove undefined values
-      const cleanData = {}
-      Object.keys(courseData).forEach(key => {
-        if (courseData[key] !== undefined && courseData[key] !== null) {
-          cleanData[key] = courseData[key]
-        }
-      })
-
-      const coursesRef = collection(db, 'courses')
-      const docRef = await addDoc(coursesRef, {
-        ...cleanData,
+      // Thoroughly clean data using the utility function
+      const cleanData = cleanObject(courseData)
+      
+      // Ensure required fields have valid values
+      const finalData = {
+        title: cleanData.title || 'Untitled Course',
+        description: cleanData.description || 'No description provided',
+        price: parseFloat(cleanData.price) || 0,
+        category: cleanData.category || 'general',
+        instructor: cleanData.instructor || 'Unknown Instructor',
+        duration: cleanData.duration || '4 weeks',
+        level: cleanData.level || 'Beginner',
+        image: cleanData.image || '/vue-js-logo.png',
+        skills: Array.isArray(cleanData.skills) && cleanData.skills.length > 0 ? cleanData.skills : ['learning'],
+        organization_wallet: cleanData.organization_wallet || 'bernieio.testnet',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
-      })
+      }
+
+      console.log('Firebase: Final course data to save:', JSON.stringify(finalData, null, 2))
+
+      const coursesRef = collection(db, 'courses')
+      const docRef = await addDoc(coursesRef, finalData)
 
       console.log('Firebase: Course created successfully with ID:', docRef.id)
-      return { id: docRef.id, ...cleanData }
+      return { id: docRef.id, ...finalData }
     } catch (error) {
       console.error('Firebase: Error creating course:', error)
       throw error
@@ -93,22 +102,36 @@ export const firebaseService = {
 
   async updateCourse(courseId, courseData) {
     try {
-      // Clean data - remove undefined values
-      const cleanData = {}
-      Object.keys(courseData).forEach(key => {
-        if (courseData[key] !== undefined && courseData[key] !== null) {
-          cleanData[key] = courseData[key]
-        }
-      })
+      console.log('Firebase: Updating course with data:', courseData)
+      
+      // Thoroughly clean data using the utility function
+      const cleanData = cleanObject(courseData)
+      
+      // Extra validation for problematic fields
+      if (cleanData.category === undefined || cleanData.category === '') {
+        delete cleanData.category // Remove undefined category field
+      }
+      if (cleanData.skills === undefined) {
+        delete cleanData.skills // Remove undefined skills field
+      }
+      if (cleanData.price !== undefined) {
+        cleanData.price = parseFloat(cleanData.price) // Ensure price is number
+      }
+      
+      console.log('Firebase: Clean course data to update:', JSON.stringify(cleanData, null, 2))
 
       const courseRef = doc(db, 'courses', courseId)
-      await updateDoc(courseRef, {
+      
+      // Use setDoc with merge instead of updateDoc for better reliability
+      await setDoc(courseRef, {
         ...cleanData,
         updatedAt: new Date().toISOString()
-      })
+      }, { merge: true })
+      
+      console.log('Firebase: Course updated successfully')
       return { id: courseId, ...cleanData }
     } catch (error) {
-      console.error('Error updating course:', error)
+      console.error('Firebase: Error updating course:', error)
       throw error
     }
   },
