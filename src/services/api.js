@@ -361,6 +361,12 @@ api.createCourse = async (courseData) => {
     
     console.log('Creating course with data:', filteredData)
     const result = await firebaseService.createCourse(filteredData)
+    
+    // Ensure the result has an ID
+    if (result && !result.id && result.docId) {
+      result.id = result.docId
+    }
+    
     return { data: result }
   } catch (error) {
     console.error('Failed to create course:', error)

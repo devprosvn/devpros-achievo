@@ -307,6 +307,9 @@ const addCourse = async () => {
       alert('Khóa học đã được tạo thành công!')
     }
     
+    // Reload courses data to reflect changes
+    await loadData()
+    
     // Close modal and reset form after successful operation
     showAddCourse.value = false
     newCourse.value = { title: '', description: '', price: 0 }
@@ -368,6 +371,9 @@ const issueCertificate = async () => {
       }
     }
 
+    // Reload dashboard data
+    await loadData()
+    
     // Close modal and reset form
     showIssueCertificate.value = false
     newCertificate.value = { studentEmail: '', title: '', courseId: '' }
