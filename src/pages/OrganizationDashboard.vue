@@ -91,6 +91,39 @@
             <label>Price (NEAR)</label>
             <input v-model="newCourse.price" type="number" step="0.01" required>
           </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select v-model="newCourse.category" required>
+              <option value="general">General</option>
+              <option value="blockchain">Blockchain</option>
+              <option value="development">Web Development</option>
+              <option value="finance">Finance</option>
+              <option value="design">Design</option>
+              <option value="marketing">Marketing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Instructor</label>
+            <input v-model="newCourse.instructor" type="text" placeholder="Enter instructor name">
+          </div>
+          <div class="form-group">
+            <label>Duration</label>
+            <select v-model="newCourse.duration">
+              <option value="2 weeks">2 weeks</option>
+              <option value="4 weeks">4 weeks</option>
+              <option value="6 weeks">6 weeks</option>
+              <option value="8 weeks">8 weeks</option>
+              <option value="12 weeks">12 weeks</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Level</label>
+            <select v-model="newCourse.level">
+              <option value="Beginner">Beginner</option>
+              <option value="Intermediate">Intermediate</option>
+              <option value="Advanced">Advanced</option>
+            </select>
+          </div>
           <div class="form-actions">
             <button type="button" @click="cancelCourseEdit" class="btn btn-secondary">Cancel</button>
             <button type="submit" class="btn btn-primary" :disabled="isLoading">
@@ -201,7 +234,13 @@ const isLoading = ref(false)
 const newCourse = ref({
   title: '',
   description: '',
-  price: 0
+  price: 0,
+  category: 'general',
+  instructor: '',
+  duration: '4 weeks',
+  level: 'Beginner',
+  image: '/vue-js-logo.png',
+  skills: []
 })
 
 const newCertificate = ref({
@@ -274,11 +313,11 @@ const addCourse = async () => {
       description: newCourse.value.description.trim(),
       price: parseFloat(newCourse.value.price),
       category: newCourse.value.category || 'general',
-      instructor: newCourse.value.instructor || 'Organization',
+      instructor: newCourse.value.instructor || authStore.user?.name || 'Organization',
       duration: newCourse.value.duration || '4 weeks',
       level: newCourse.value.level || 'Beginner',
       image: newCourse.value.image || '/vue-js-logo.png',
-      skills: newCourse.value.skills || ['learning'],
+      skills: Array.isArray(newCourse.value.skills) ? newCourse.value.skills : ['learning'],
       organization_wallet: authStore.user?.wallet_address || 'bernieio.testnet'
     }
 
@@ -312,7 +351,17 @@ const addCourse = async () => {
     
     // Close modal and reset form after successful operation
     showAddCourse.value = false
-    newCourse.value = { title: '', description: '', price: 0 }
+    newCourse.value = {
+      title: '',
+      description: '',
+      price: 0,
+      category: 'general',
+      instructor: '',
+      duration: '4 weeks',
+      level: 'Beginner',
+      image: '/vue-js-logo.png',
+      skills: []
+    }
     editingCourseId.value = null
     
   } catch (error) {
@@ -396,7 +445,13 @@ const editCourse = (course) => {
   newCourse.value = {
     title: course.title,
     description: course.description,
-    price: parseFloat(course.priceNEAR)
+    price: parseFloat(course.priceNEAR),
+    category: course.category || 'general',
+    instructor: course.instructor || '',
+    duration: course.duration || '4 weeks',
+    level: course.level || 'Beginner',
+    image: course.image || '/vue-js-logo.png',
+    skills: course.skills || []
   }
   editingCourseId.value = course.id
   showAddCourse.value = true
@@ -467,7 +522,17 @@ const loadCourseStudents = async (course) => {
 
 const cancelCourseEdit = () => {
   showAddCourse.value = false
-  newCourse.value = { title: '', description: '', price: 0 }
+  newCourse.value = {
+    title: '',
+    description: '',
+    price: 0,
+    category: 'general',
+    instructor: '',
+    duration: '4 weeks',
+    level: 'Beginner',
+    image: '/vue-js-logo.png',
+    skills: []
+  }
   editingCourseId.value = null
 }
 
