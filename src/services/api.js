@@ -219,63 +219,62 @@ export const api = {
   },
 }
 
-// Override API calls with mock data for development
-if (process.env.NODE_ENV === 'development') {
-  api.getCourses = () => createMockApiCall(mockData.courses)
-  api.getCertificates = () => createMockApiCall(mockData.certificates)
-  api.getRewards = () => createMockApiCall(mockData.rewards)
-  api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
-  
-  // Mock create course
-  api.createCourse = (courseData) => {
-    const newCourse = {
-      id: `COURSE_${Date.now()}`,
-      title: courseData.title,
-      description: courseData.description,
-      category: 'general',
-      instructor: 'Organization',
-      duration: '4 weeks',
-      level: 'Beginner',
-      priceNEAR: courseData.price.toString(),
-      priceUSD: (courseData.price * 3).toString(),
-      image: '/vue-js-logo.png',
-      skills: ['learning'],
-      organization_wallet: 'achievo-org.testnet'
-    }
-    mockData.courses.push(newCourse)
-    return createMockApiCall(newCourse)
+// Always use mock data until real backend is available
+// Remove the environment check to use mock data in both development and production
+api.getCourses = () => createMockApiCall(mockData.courses)
+api.getCertificates = () => createMockApiCall(mockData.certificates)
+api.getRewards = () => createMockApiCall(mockData.rewards)
+api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
+
+// Mock create course
+api.createCourse = (courseData) => {
+  const newCourse = {
+    id: `COURSE_${Date.now()}`,
+    title: courseData.title,
+    description: courseData.description,
+    category: 'general',
+    instructor: 'Organization',
+    duration: '4 weeks',
+    level: 'Beginner',
+    priceNEAR: courseData.price.toString(),
+    priceUSD: (courseData.price * 3).toString(),
+    image: '/vue-js-logo.png',
+    skills: ['learning'],
+    organization_wallet: 'achievo-org.testnet'
   }
-  
-  // Mock issue certificate
-  api.issueCertificate = (certificateData) => {
-    const newCertificate = {
-      id: `CERT_${Date.now()}`,
-      certificate_id: `CERT_${Date.now()}`,
-      title: certificateData.title,
-      recipientName: certificateData.studentEmail,
-      recipientWallet: 'student.testnet',
-      issuerName: 'Organization',
-      issuerWallet: 'achievo-org.testnet',
-      courseId: certificateData.courseId,
-      issueDate: certificateData.issuedDate || new Date().toISOString(),
-      completionDate: new Date().toISOString(),
-      grade: 'A',
-      skills: ['learning'],
-      status: 'verified',
-      blockchainHash: `QmHash${Date.now()}`
-    }
-    mockData.certificates.push(newCertificate)
-    return createMockApiCall(newCertificate)
+  mockData.courses.push(newCourse)
+  return createMockApiCall(newCourse)
+}
+
+// Mock issue certificate
+api.issueCertificate = (certificateData) => {
+  const newCertificate = {
+    id: `CERT_${Date.now()}`,
+    certificate_id: `CERT_${Date.now()}`,
+    title: certificateData.title,
+    recipientName: certificateData.studentEmail,
+    recipientWallet: 'student.testnet',
+    issuerName: 'Organization',
+    issuerWallet: 'achievo-org.testnet',
+    courseId: certificateData.courseId,
+    issueDate: certificateData.issuedDate || new Date().toISOString(),
+    completionDate: new Date().toISOString(),
+    grade: 'A',
+    skills: ['learning'],
+    status: 'verified',
+    blockchainHash: `QmHash${Date.now()}`
   }
-  
-  // Mock revoke certificate  
-  api.revokeCertificate = (id) => {
-    const index = mockData.certificates.findIndex(cert => cert.id === id)
-    if (index > -1) {
-      mockData.certificates.splice(index, 1)
-    }
-    return createMockApiCall({ success: true })
+  mockData.certificates.push(newCertificate)
+  return createMockApiCall(newCertificate)
+}
+
+// Mock revoke certificate  
+api.revokeCertificate = (id) => {
+  const index = mockData.certificates.findIndex(cert => cert.id === id)
+  if (index > -1) {
+    mockData.certificates.splice(index, 1)
   }
+  return createMockApiCall({ success: true })
 }
 
 // Export the apiClient for direct access
