@@ -315,10 +315,29 @@ export const api = {
   },
 }
 
+// Health check function
+const checkServerHealth = async () => {
+  try {
+    const response = await apiClient.get('/api/health')
+    console.log('Server health check:', response.data)
+    return true
+  } catch (error) {
+    console.error('Server health check failed:', error)
+    return false
+  }
+}
+
 // Backend API-based get courses
 api.getCourses = async () => {
   try {
     console.log('API: Getting courses from backend API...')
+    
+    // Check server health first
+    const isHealthy = await checkServerHealth()
+    if (!isHealthy) {
+      throw new Error('Server không phản hồi. Vui lòng thử lại sau.')
+    }
+    
     const response = await apiClient.get('/api/courses')
     console.log('API: Courses retrieved from backend:', response.data)
     return response.data
@@ -331,6 +350,10 @@ api.getCourses = async () => {
     }
     
     // Provide more specific error messages for network issues
+    if (error.code === 'ECONNREFUSED') {
+      throw new Error('Server chưa sẵn sàng. Vui lòng đợi server khởi động.')
+    }
+    
     if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
       throw new Error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.')
     }

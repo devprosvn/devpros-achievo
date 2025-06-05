@@ -26,6 +26,15 @@ app.use((req, res, next) => {
   }
 })
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'healthy', 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  })
+})
+
 // Import Firebase service (we'll create a simplified version for server)
 const createFirebaseService = () => {
   // Simplified Firebase service for server-side use
@@ -217,11 +226,24 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'))
 })
 
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${port}`)
-  console.log(`Frontend should connect to: http://localhost:${port}`)
-  console.log(`API endpoints available:`)
+const server = app.listen(port, '0.0.0.0', () => {
+  console.log(`✅ Server running at http://0.0.0.0:${port}`)
+  console.log(`✅ Frontend should connect to: http://localhost:${port}`)
+  console.log(`✅ API endpoints available:`)
   console.log(`  POST /api/courses - Create course`)
   console.log(`  GET /api/courses - Get all courses`)
   console.log(`  PUT /api/courses/:id - Update course`)
+  console.log(`✅ Server is ready to accept connections`)
+})
+
+server.on('error', (err) => {
+  console.error('❌ Server error:', err)
+})
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('🔄 SIGTERM received, shutting down gracefully')
+  server.close(() => {
+    console.log('✅ Server closed')
+  })
 })
