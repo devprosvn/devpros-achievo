@@ -2,7 +2,7 @@ import axios from 'axios'
 import PinataService from './pinata'
 import firebaseService from './firebase'
 
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://0.0.0.0:5000'
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -24,10 +24,19 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error)
+    
     if (error.response?.status === 401) {
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
+    
+    // Handle network connection errors
+    if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK' || !error.response) {
+      console.error('Network connection failed. Is the server running?')
+      error.message = 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.'
+    }
+    
     return Promise.reject(error)
   }
 )

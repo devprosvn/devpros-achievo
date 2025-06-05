@@ -219,6 +219,7 @@ app.get('*', (req, res) => {
 
 app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://0.0.0.0:${port}`)
+  console.log(`Frontend should connect to: http://localhost:${port}`)
   console.log(`API endpoints available:`)
   console.log(`  POST /api/courses - Create course`)
   console.log(`  GET /api/courses - Get all courses`)
