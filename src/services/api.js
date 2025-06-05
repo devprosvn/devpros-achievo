@@ -315,9 +315,8 @@ api.getCourses = async () => {
     return { data: courses || [] }
   } catch (error) {
     console.error('Failed to get courses:', error)
-    // Fallback to mock data if Firebase fails
-    console.log('API: Falling back to mock data')
-    return createMockApiCall(mockData.courses)
+    // Don't fallback to mock data - throw error to show real issues
+    throw new Error(`Không thể tải khóa học từ Firebase: ${error.message}`)
   }
 }
 // Firebase-backed get certificates

@@ -34,7 +34,7 @@ start = "typescript-language-server --stdio"
 deploymentTarget = "static"
 build = ["sh", "-c", "npm run build"]
 publicDir = "dist"
-run = ["sh", "-c", "npm run preview"]
+run = ["sh", "-c", "node server.js"]
 
 [[ports]]
 localPort = 4173
@@ -49,7 +49,7 @@ localPort = 5174
 externalPort = 3000
 
 [workflows]
-runButton = "Dev Server"
+runButton = "Build and Start Production Server"
 
 [[workflows.workflow]]
 name = "Dev Server"
@@ -59,3 +59,16 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Build and Start Production Server"
+author = 42118327
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"

@@ -284,6 +284,7 @@ const loadData = async () => {
     console.log('Dashboard data loaded successfully')
   } catch (error) {
     console.error('Failed to load data:', error)
+    alert(`Lỗi khi tải dữ liệu: ${error.message}`)
     // Set default values in case of error
     courses.value = []
     certificates.value = []
@@ -342,49 +343,18 @@ const addCourse = async () => {
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
-      console.log("🔵 Gửi dữ liệu khóa học:", newCourse.value)
-
-        // Validate dữ liệu trước khi gửi
-        if (!newCourse.value.title?.trim()) {
-          throw new Error('Tiêu đề khóa học là bắt buộc')
-        }
-        if (!newCourse.value.description?.trim()) {
-          throw new Error('Mô tả khóa học là bắt buộc')
-        }
-        if (!newCourse.value.price || newCourse.value.price <= 0) {
-          throw new Error('Giá khóa học phải lớn hơn 0')
-        }
+      console.log("🔵 Gửi dữ liệu khóa học:", courseData)
       response = await api.createCourse(courseData)
       console.log("🟢 Tạo khóa học thành công:", response)
-           // Cập nhật danh sách và đóng modal
-        if (response.data) {
-          showAddCourse.value = false
-          alert("✅ Khóa học đã được tạo thành công!")
 
-          // Reset form
-          newCourse.value = {
-            title: '',
-            description: '',
-            price: 0,
-            category: '',
-            instructor: '',
-            duration: '',
-            level: ''
-          }
-
-          // Tải lại danh sách khóa học từ Firestore
-          await loadCourses()
-        } else {
-          throw new Error('Không nhận được dữ liệu khóa học từ server')
-        }
+      if (!response.data) {
+        throw new Error('Không nhận được dữ liệu khóa học từ server')
+      }
 
       alert('Khóa học đã được tạo thành công!')
     }
 
-    // Reload courses data to reflect changes
-    await loadData()
-
-    // Close modal and reset form after successful operation
+    // Close modal and reset form FIRST
     showAddCourse.value = false
     newCourse.value = {
       title: '',
@@ -398,6 +368,9 @@ const addCourse = async () => {
       skills: []
     }
     editingCourseId.value = null
+
+    // THEN reload data to reflect changes
+    await loadData()
 
   } catch (error) {
     console.error('Failed to save course:', error)
