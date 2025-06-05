@@ -75,7 +75,12 @@ args = "npm run build"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "echo \"Build completed, starting server...\""
+args = "node server.js"
+
+[[workflows.workflow]]
+name = "Start Server Only"
+author = 42118327
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
