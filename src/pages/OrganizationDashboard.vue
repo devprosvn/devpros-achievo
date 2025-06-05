@@ -333,13 +333,6 @@ const addCourse = async () => {
       // Update existing course
       response = await api.updateCourse(editingCourseId.value, courseData)
       console.log('Course updated successfully:', response.data)
-
-      // Update local courses array
-      const index = courses.value.findIndex(c => c.id === editingCourseId.value)
-      if (index !== -1) {
-        courses.value[index] = { ...courses.value[index], ...response.data }
-      }
-
       alert('Khóa học đã được cập nhật thành công!')
     } else {
       // Create new course
@@ -354,22 +347,10 @@ const addCourse = async () => {
       alert('Khóa học đã được tạo thành công!')
     }
 
-    // Close modal and reset form FIRST
-    showAddCourse.value = false
-    newCourse.value = {
-      title: '',
-      description: '',
-      price: 0,
-      category: 'general',
-      instructor: '',
-      duration: '4 weeks',
-      level: 'Beginner',
-      image: '/vue-js-logo.png',
-      skills: []
-    }
-    editingCourseId.value = null
-
-    // THEN reload data to reflect changes
+    // Reset form and close modal immediately
+    resetCourseForm()
+    
+    // Reload data to reflect changes
     await loadData()
 
   } catch (error) {
@@ -414,11 +395,6 @@ const issueCertificate = async () => {
     const response = await api.issueCertificate(certificateData)
     console.log('Certificate issued successfully:', response.data)
 
-    // Add new certificate to local array
-    certificates.value.push(response.data)
-    certificatesIssued.value = certificates.value.length
-    activeStudents.value = new Set(certificates.value.map(c => c.studentEmail)).size
-
     // Also issue on NEAR blockchain
     if (nearStore.isConnected) {
       try {
@@ -428,20 +404,25 @@ const issueCertificate = async () => {
       }
     }
 
+    alert('Chứng chỉ đã được cấp thành công!')
+
+    // Reset form and close modal immediately
+    resetCertificateForm()
+    
     // Reload dashboard data
     await loadData()
 
-    // Close modal and reset form
-    showIssueCertificate.value = false
-    newCertificate.value = { studentEmail: '', title: '', courseId: '' }
-
-    alert('Chứng chỉ đã được cấp thành công!')
   } catch (error) {
     console.error('Failed to issue certificate:', error)
     alert('Có lỗi khi cấp chứng chỉ: ' + error.message)
   } finally {
     isLoading.value = false
   }
+}
+
+const resetCertificateForm = () => {
+  newCertificate.value = { studentEmail: '', title: '', courseId: '' }
+  showIssueCertificate.value = false
 }
 
 const formatDate = (dateString) => {
@@ -528,8 +509,7 @@ const loadCourseStudents = async (course) => {
   }
 }
 
-const cancelCourseEdit = () => {
-  showAddCourse.value = false
+const resetCourseForm = () => {
   newCourse.value = {
     title: '',
     description: '',
@@ -542,15 +522,19 @@ const cancelCourseEdit = () => {
     skills: []
   }
   editingCourseId.value = null
+  showAddCourse.value = false
+}
+
+const cancelCourseEdit = () => {
+  resetCourseForm()
 }
 
 // Close modals when clicking outside
 const closeModal = (modalName) => {
   if (modalName === 'course') {
-    cancelCourseEdit()
+    resetCourseForm()
   } else if (modalName === 'certificate') {
-    showIssueCertificate.value = false
-    newCertificate.value = { studentEmail: '', title: '', courseId: '' }
+    resetCertificateForm()
   } else if (modalName === 'students') {
     showStudentsList.value = false
     selectedCourse.value = null
@@ -637,12 +621,14 @@ const seedMockData = async () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (!authStore.isAuthenticated) {
     router.push('/login')
     return
   }
-  loadData()
+  
+  // Always reload data when component mounts to ensure fresh data
+  await loadData()
 })
 </script>
 

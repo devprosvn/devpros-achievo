@@ -13,9 +13,16 @@ const port = process.env.PORT || 5000 // Use port 5000 for Replit
 // Serve static files from the 'dist' directory (Vite's build output)
 app.use(express.static(path.join(__dirname, 'dist')))
 
-// Fallback to index.html for all other routes (Vue Router history mode)
+// Serve static files first, then fallback to index.html for SPA routes
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+  // Check if requested file exists in dist folder
+  const requestedPath = path.join(__dirname, 'dist', req.path)
+  if (req.path !== '/' && require('fs').existsSync(requestedPath)) {
+    res.sendFile(requestedPath)
+  } else {
+    // Fallback to index.html for Vue Router history mode
+    res.sendFile(path.join(__dirname, 'dist', 'index.html'))
+  }
 })
 
 app.listen(port, '0.0.0.0', () => {
