@@ -2,7 +2,7 @@ import axios from 'axios'
 import PinataService from './pinata'
 import firebaseService from './firebase'
 
-const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://localhost:5000'
+const API_BASE_URL = process.env.VUE_APP_API_URL || 'http://0.0.0.0:5000'
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -306,17 +306,27 @@ export const api = {
   },
 }
 
-// Firebase-backed get courses
+// Backend API-based get courses
 api.getCourses = async () => {
   try {
-    console.log('API: Getting courses from Firebase...')
-    const courses = await firebaseService.getCourses()
-    console.log('API: Courses retrieved:', courses)
-    return { data: courses || [] }
+    console.log('API: Getting courses from backend API...')
+    const response = await apiClient.get('/api/courses')
+    console.log('API: Courses retrieved from backend:', response.data)
+    return response.data
   } catch (error) {
-    console.error('Failed to get courses:', error)
-    // Don't fallback to mock data - throw error to show real issues
-    throw new Error(`Không thể tải khóa học từ Firebase: ${error.message}`)
+    console.error('Failed to get courses from backend:', error)
+    
+    // Handle backend API error responses
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
+    }
+    
+    // Provide more specific error messages for network issues
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      throw new Error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.')
+    }
+    
+    throw new Error(`Không thể tải khóa học từ backend: ${error.message}`)
   }
 }
 // Firebase-backed get certificates
@@ -333,12 +343,12 @@ api.getCertificates = async () => {
 api.getRewards = () => createMockApiCall(mockData.rewards)
 api.processPayment = (paymentData) => createMockApiCall({ success: true, transactionId: 'mock_tx_123' })
 
-// Firebase-backed course operations
+// Backend API-based course operations
 api.createCourse = async (courseData) => {
   try {
-    console.log('API: Creating course with data:', courseData)
+    console.log('API: Creating course via backend API with data:', courseData)
     
-    // Basic validation before sending to Firebase
+    // Basic client-side validation
     if (!courseData.title?.trim()) {
       throw new Error('Tiêu đề khóa học là bắt buộc')
     }
@@ -349,32 +359,34 @@ api.createCourse = async (courseData) => {
       throw new Error('Giá khóa học phải lớn hơn 0')
     }
     
-    // Let Firebase service handle all the data cleaning and validation
-    const result = await firebaseService.createCourse(courseData)
+    // Call backend API instead of Firebase directly
+    const response = await apiClient.post('/api/courses', courseData)
     
-    console.log('API: Course created successfully:', result)
-    return { data: result }
+    console.log('API: Course created successfully via backend:', response.data)
+    return response.data
   } catch (error) {
-    console.error('API: Failed to create course:', error)
+    console.error('API: Failed to create course via backend:', error)
     
-    // Provide more specific error messages
-    if (error.message.includes('Missing or insufficient permissions')) {
-      throw new Error('Không có quyền tạo khóa học. Vui lòng kiểm tra cấu hình Firestore.')
+    // Handle backend API error responses
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
     }
-    if (error.message.includes('invalid data')) {
-      throw new Error('Dữ liệu khóa học không hợp lệ. Vui lòng kiểm tra các trường thông tin.')
+    
+    // Provide more specific error messages for network issues
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      throw new Error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.')
     }
     
     throw error
   }
 }
 
-// Firebase update course
+// Backend API-based update course
 api.updateCourse = async (courseId, courseData) => {
   try {
-    console.log('API: Updating course with data:', courseData)
+    console.log('API: Updating course via backend API with data:', courseData)
     
-    // Validate required fields before sending to Firebase
+    // Validate required fields
     if (!courseId) {
       throw new Error('Course ID is required for update')
     }
@@ -384,20 +396,22 @@ api.updateCourse = async (courseId, courseData) => {
       throw new Error('No course data provided for update')
     }
     
-    // Let Firebase service handle all the data cleaning and validation
-    const result = await firebaseService.updateCourse(courseId, courseData)
+    // Call backend API instead of Firebase directly
+    const response = await apiClient.put(`/api/courses/${courseId}`, courseData)
     
-    console.log('API: Course updated successfully:', result)
-    return { data: result }
+    console.log('API: Course updated successfully via backend:', response.data)
+    return response.data
   } catch (error) {
-    console.error('API: Failed to update course:', error)
+    console.error('API: Failed to update course via backend:', error)
     
-    // Provide more specific error messages
-    if (error.message.includes('Missing or insufficient permissions')) {
-      throw new Error('Không có quyền cập nhật khóa học. Vui lòng kiểm tra cấu hình Firestore.')
+    // Handle backend API error responses
+    if (error.response?.data?.message) {
+      throw new Error(error.response.data.message)
     }
-    if (error.message.includes('invalid data')) {
-      throw new Error('Dữ liệu khóa học không hợp lệ. Vui lòng kiểm tra các trường thông tin.')
+    
+    // Provide more specific error messages for network issues
+    if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
+      throw new Error('Lỗi kết nối mạng. Vui lòng kiểm tra kết nối internet.')
     }
     
     throw error
